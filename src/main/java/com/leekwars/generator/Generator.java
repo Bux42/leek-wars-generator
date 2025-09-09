@@ -50,7 +50,7 @@ public class Generator {
 		loadWeapons();
 		loadChips();
 		loadSummons();
-		loadComponents();
+		// loadComponents();
 	}
 
 	/**

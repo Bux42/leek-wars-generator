@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import com.alibaba.fastjson.JSON;
 import com.leekwars.generator.Generator;
 import com.leekwars.generator.Log;
+import com.leekwars.generator.Data;
 import com.leekwars.generator.outcome.Outcome;
 import com.leekwars.generator.scenario.Scenario;
 import com.leekwars.generator.test.LocalDbFileSystem;
@@ -55,6 +56,7 @@ public class Main {
 		}
 
 		// Data.checkData("https://leekwars.com/api/");
+
 		if (db_resolver) {
 			LeekScript.setFileSystem(new LocalDbFileSystem());
 		} else {
