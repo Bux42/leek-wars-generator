@@ -27,6 +27,7 @@ public class Main {
 		boolean db_resolver = false;
 		boolean verbose = false;
 		boolean analyze = false;
+		int run_count = 1;
 		int farmer = 0;
 		int folder = 0;
 
@@ -42,6 +43,9 @@ public class Main {
 					farmer = Integer.parseInt(arg.substring("--farmer=".length()));
 				} else if (arg.startsWith("--folder=")) {
 					folder = Integer.parseInt(arg.substring("--folder=".length()));
+				} else if (arg.startsWith("--run_count=")) {
+					run_count = Integer.parseInt(arg.substring("--run_count=".length()));
+					System.out.println("run_count: " + run_count);
 				}
 			} else {
 				file = arg;
@@ -73,13 +77,40 @@ public class Main {
 				Log.e(TAG, "File not found!");
 			}
 		} else {
-			Scenario scenario = Scenario.fromFile(new File(file));
-			if (scenario == null) {
-				Log.e(TAG, "Failed to parse scenario!");
-				return;
+			if (run_count > 1) {
+				int player_0_win = 0;
+				int player_1_win = 0;
+				int draw = 0;
+
+				for (int i = 0; i < run_count; i++) {
+					Scenario scenario = Scenario.fromFile(new File(file));
+					if (scenario == null) {
+						Log.e(TAG, "Failed to parse scenario!");
+						return;
+					}
+					Outcome outcome = generator.runScenario(scenario, null, new LocalDbRegisterManager(), new LocalTrophyManager());
+					// System.out.println(JSON.toJSONString(outcome.toJson(), false));
+					// System.out.println(outcome.winner);
+					if (outcome.winner == 0) {
+						player_0_win++;
+					} else if (outcome.winner == 1) {
+						player_1_win++;
+					} else {
+						draw++;
+					}
+				}
+				System.out.println("Player 0 win: " + player_0_win);
+				System.out.println("Player 1 win: " + player_1_win);
+				System.out.println("Draw: " + draw);
+			} else {
+				Scenario scenario = Scenario.fromFile(new File(file));
+				if (scenario == null) {
+					Log.e(TAG, "Failed to parse scenario!");
+					return;
+				}
+				Outcome outcome = generator.runScenario(scenario, null, new LocalDbRegisterManager(), new LocalTrophyManager());
+				System.out.println(JSON.toJSONString(outcome.toJson(), false));
 			}
-			Outcome outcome = generator.runScenario(scenario, null, new LocalDbRegisterManager(), new LocalTrophyManager());
-			System.out.println(JSON.toJSONString(outcome.toJson(), false));
 		}
 	}
 }

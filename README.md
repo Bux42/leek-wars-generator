@@ -22,7 +22,33 @@ Data.checkData("https://leekwars.com/api/");
 
 To load API Data for weapons / chips etc
 
+Then recompile at root folder
+
+```
+gradle jar
+```
+
+Then run any scenario to fetch the json files
+
+```
+java -jar generator.jar test/scenario/scenario1.json --verbose
+```
+
 Then comment it again xddd
+
+Then recompile again
+
+```
+gradle jar
+```
+
+## Added features
+
+You can now run the same scenario multiple times to get the "average" winrate
+
+```
+java -jar generator.jar test/scenario/scenario1.json --run_count=100
+```
 
 ## Build
 
@@ -53,4 +79,9 @@ java -jar generator.jar test/scenario/scenario1.json
 ## Credits
 
 Developed by Dawyde & Pilow © 2012-2021
+
+```
+
+```
+
 ```
