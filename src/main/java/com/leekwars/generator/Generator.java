@@ -30,6 +30,8 @@ import com.leekwars.generator.state.Entity;
 import leekscript.compiler.AIFile;
 import leekscript.compiler.IACompiler;
 import leekscript.compiler.LeekScript;
+import leekscript.compiler.vscode.DefinitionsResult;
+import leekscript.compiler.vscode.UserCodeDefinitionContext;
 import leekscript.compiler.IACompiler.AnalyzeResult;
 import leekscript.runner.LeekConstants;
 import leekscript.runner.LeekFunctions;
@@ -51,6 +53,37 @@ public class Generator {
 		loadChips();
 		loadSummons();
 		loadComponents();
+	}
+
+	/**
+	 * Get code definitions at a given cursor position.
+	 * @param ai
+	 * @param cursorLine
+	 * @param cursorColumn
+	 * @param debug
+	 * @return DefinitionsResult object containing definitions (functions, classes, variables etc) found.
+	 */
+	public DefinitionsResult getDefinitions(AIFile ai, int cursorLine, int cursorColumn, boolean debug) {
+		DefinitionsResult result = new DefinitionsResult();
+
+		if (debug) {
+			System.out.println("Analyzing AI " + ai + "..." + ai.hashCode());
+		}
+
+		try {
+			UserCodeDefinitionContext context = new UserCodeDefinitionContext(cursorLine, cursorColumn, result, ai);
+			context.debug = debug;
+			new IACompiler().getDefinitions(context);
+
+			// this is not supposed to happen, but we can have variables declared in for
+			// loops that were never closed
+			context.clearVariableParentBlockReferences();
+		} catch (Exception e) {
+			e.printStackTrace(System.out);
+			result.exception = e;
+		}
+
+		return result;
 	}
 
 	/**

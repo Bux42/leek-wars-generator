@@ -10,3 +10,4 @@ generator.jar
 build/
 bin/
 .vscode
+user-code/
