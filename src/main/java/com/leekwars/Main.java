@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 
 import com.alibaba.fastjson.JSON;
+import com.leekwars.generator.Data;
 import com.leekwars.generator.Generator;
 import com.leekwars.generator.Log;
 import com.leekwars.generator.outcome.Outcome;
@@ -29,6 +30,9 @@ public class Main {
 		int farmer = 0;
 		int folder = 0;
 
+		// set to true to download remote leekwars assets json files (needed for the generator)
+		boolean download_assets = false;
+
 		for (String arg : args) {
 			if (arg.startsWith("--")) {
 				switch (arg.substring(2)) {
@@ -41,13 +45,20 @@ public class Main {
 					farmer = Integer.parseInt(arg.substring("--farmer=".length()));
 				} else if (arg.startsWith("--folder=")) {
 					folder = Integer.parseInt(arg.substring("--folder=".length()));
-				}
+				} else if (arg.startsWith("--download_assets")) {
+					download_assets = true;
+				} 
 			} else {
 				file = arg;
 			}
 		}
 		Log.enable(verbose);
 		Log.i(TAG, "Generator v1");
+
+		if (download_assets) {
+			Data.checkData("https://leekwars.com/api/");
+		}
+
 		// System.out.println("db_resolver " + db_resolver + " folder=" + folder + " farmer=" + farmer);
 		if (file == null) {
 			Log.i(TAG, "No scenario/ai file passed!");
