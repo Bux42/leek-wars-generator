@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 
 import com.alibaba.fastjson.JSON;
+import com.leekwars.api.HttpApi;
 import com.leekwars.generator.Data;
 import com.leekwars.generator.Generator;
 import com.leekwars.generator.Log;
@@ -47,13 +48,31 @@ public class Main {
 					folder = Integer.parseInt(arg.substring("--folder=".length()));
 				} else if (arg.startsWith("--download_assets")) {
 					download_assets = true;
+				} else if (arg.startsWith("--start_code_server")) {
+					// Start a simple HTTP server to serve code files
+					// Check if we should also start tests
+					boolean startTests = false;
+					for (String a : args) {
+						if ("--start_tests".equals(a)) {
+							startTests = true;
+							break;
+						}
+					}
+					final boolean runTests = startTests;
+					new Thread(() -> {
+						try {
+							HttpApi.main(runTests ? new String[] { "--start_tests" } : new String[] {});
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}).start();
 				} 
 			} else {
 				file = arg;
 			}
 		}
 		Log.enable(verbose);
-		Log.i(TAG, "Generator v1");
+		System.out.println("Generator v1");
 
 		if (download_assets) {
 			Data.checkData("https://leekwars.com/api/");
@@ -61,7 +80,7 @@ public class Main {
 
 		// System.out.println("db_resolver " + db_resolver + " folder=" + folder + " farmer=" + farmer);
 		if (file == null) {
-			Log.i(TAG, "No scenario/ai file passed!");
+			System.out.println("No scenario/ai file passed!");
 			return;
 		}
 
