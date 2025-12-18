@@ -49,23 +49,7 @@ public class Main {
 				} else if (arg.startsWith("--download_assets")) {
 					download_assets = true;
 				} else if (arg.startsWith("--start_code_server")) {
-					// Start a simple HTTP server to serve code files
-					// Check if we should also start tests
-					boolean startTests = false;
-					for (String a : args) {
-						if ("--start_tests".equals(a)) {
-							startTests = true;
-							break;
-						}
-					}
-					final boolean runTests = startTests;
-					new Thread(() -> {
-						try {
-							HttpApi.main(runTests ? new String[] { "--start_tests" } : new String[] {});
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-					}).start();
+					startApiServer(args);
 				} 
 			} else {
 				file = arg;
@@ -109,5 +93,42 @@ public class Main {
 			Outcome outcome = generator.runScenario(scenario, null, new LocalDbRegisterManager(), new LocalTrophyManager());
 			System.out.println(JSON.toJSONString(outcome.toJson(), false));
 		}
+	}
+
+	public static void startApiServer(String[] args) {
+		boolean startTests = false;
+		int port = 8080;
+		for (String a : args) {
+			if ("--start_code_server_tests".equals(a)) {
+				startTests = true;
+				break;
+			}
+			if (a.startsWith("--code_server_port=")) {
+				try {
+					port = Integer.parseInt(a.substring("--code_server_port=".length()));
+				} catch (NumberFormatException e) {
+					System.out.println("Invalid port number for --code_server_port");
+				}
+				break;
+			}
+		}
+		final boolean runTests = startTests;
+		final int finalPort = port;
+
+		String[] serverArgs;
+		if (runTests) {
+			serverArgs = new String[] { "--start_tests", "--port=" + finalPort };
+		} else {
+			serverArgs = new String[] { "--port=" + finalPort };
+		}
+
+		System.out.println("Starting code server on port " + finalPort + (runTests ? " with tests" : ""));
+		new Thread(() -> {
+			try {
+				HttpApi.main(serverArgs);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}).start();
 	}
 }
