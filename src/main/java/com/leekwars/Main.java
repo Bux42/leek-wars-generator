@@ -48,9 +48,10 @@ public class Main {
 					folder = Integer.parseInt(arg.substring("--folder=".length()));
 				} else if (arg.startsWith("--download_assets")) {
 					download_assets = true;
-				} else if (arg.startsWith("--start_code_server")) {
+				} else if (arg.equals("--start_code_server")) {
 					startApiServer(args);
-				} 
+					return;
+				}
 			} else {
 				file = arg;
 			}
@@ -96,13 +97,9 @@ public class Main {
 	}
 
 	public static void startApiServer(String[] args) {
-		boolean startTests = false;
 		int port = 8080;
+
 		for (String a : args) {
-			if ("--start_code_server_tests".equals(a)) {
-				startTests = true;
-				break;
-			}
 			if (a.startsWith("--code_server_port=")) {
 				try {
 					port = Integer.parseInt(a.substring("--code_server_port=".length()));
@@ -112,20 +109,13 @@ public class Main {
 				break;
 			}
 		}
-		final boolean runTests = startTests;
 		final int finalPort = port;
 
-		String[] serverArgs;
-		if (runTests) {
-			serverArgs = new String[] { "--start_tests", "--port=" + finalPort };
-		} else {
-			serverArgs = new String[] { "--port=" + finalPort };
-		}
 
-		System.out.println("Starting code server on port " + finalPort + (runTests ? " with tests" : ""));
+		System.out.println("Starting code server on port " + finalPort);
 		new Thread(() -> {
 			try {
-				HttpApi.main(serverArgs);
+				HttpApi.main(new String[] { "--port=" + finalPort });
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

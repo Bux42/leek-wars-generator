@@ -26,18 +26,11 @@ public class HttpApi {
     private static Generator generator;
     private static final int DEFAULT_PORT = 8080;
     private static int port = DEFAULT_PORT;
-    private static boolean runTests = false;
 
     public static void main(String[] args) throws IOException {
         System.out.println("Starting LeekScript Code Analysis Server...");
         // Check for test flag
         for (String arg : args) {
-            if ("--start_tests".equals(arg)) {
-                runTests = true;
-                break;
-            }
-
-
             if (arg.startsWith("--port=")) {
                 try {
                     int portValue = Integer.parseInt(arg.substring(7));
