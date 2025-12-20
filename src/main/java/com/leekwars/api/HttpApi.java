@@ -35,7 +35,8 @@ public class HttpApi {
                 try {
                     int portValue = Integer.parseInt(arg.substring(7));
                     if (portValue > 0 && portValue <= 65535) {
-                        new HttpApi().port = portValue;
+                        new HttpApi();
+                        HttpApi.port = portValue;
                     } else {
                         System.err.println("Invalid port number. Using default port " + DEFAULT_PORT);
                     }
