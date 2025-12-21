@@ -55,6 +55,9 @@ public class Main {
 				} else if (arg.equals("--start_code_server")) {
 					startApiServer(args);
 					return;
+				} else if (arg.startsWith("--get_definitions_file=")) {
+					getDefinitions(args);
+					return;
 				}
 			} else {
 				file = arg;
@@ -124,5 +127,49 @@ public class Main {
 				e.printStackTrace();
 			}
 		}).start();
+	}
+
+	public static void getDefinitions(String[] args) {
+		String aiFilePath = null;
+		int get_definitions_cursor_line = 0;
+		int get_definitions_cursor_column = 0;
+		boolean debug = false;
+
+		for (String arg : args) {
+			if (arg.startsWith("--get_definitions_file=")) {
+				aiFilePath = arg.substring("--get_definitions_file=".length());
+			} else if (arg.startsWith("--get_definitions_line=")) {
+				get_definitions_cursor_line = Integer.parseInt(arg.substring("--get_definitions_line=".length()));
+			} else if (arg.startsWith("--get_definitions_column=")) {
+				get_definitions_cursor_column = Integer.parseInt(arg.substring("--get_definitions_column=".length()));
+			} else if (arg.equals("--debug_definitions")) {
+				debug = true;
+			}
+		}
+
+		LeekScript.setFileSystem(new NativeFileSystem());
+        Generator generator = new Generator();
+        generator.setCache(false);
+
+		try {
+			System.out.println("Get definitions for file: " + aiFilePath + " at line: "
+					+ get_definitions_cursor_line + " and column: " + get_definitions_cursor_column);
+
+			var ai = LeekScript.getFileSystem().getRoot().resolve(aiFilePath);
+
+			leekscript.compiler.vscode.DefinitionsResult result = generator.getDefinitions(ai,
+					get_definitions_cursor_line,
+					get_definitions_cursor_column, debug);
+
+			// result.debugDefinedNames();
+
+			// store json result in string
+			String json = JSON.toJSONString(result, true);
+			System.out.println(json);
+
+		} catch (Exception e) {
+			System.out.println("Exception while getting definitions: " + e.getMessage());
+			e.printStackTrace();
+		}
 	}
 }
