@@ -1,0 +1,5 @@
+class Test {
+    addNumber(integer a, integer b) {
+        return a + b;
+    }
+}

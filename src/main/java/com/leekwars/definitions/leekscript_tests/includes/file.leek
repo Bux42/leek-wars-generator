@@ -1,0 +1,3 @@
+include("includeFolder/included_file.leek");
+
+includedFunction();

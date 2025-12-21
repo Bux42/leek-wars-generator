@@ -1,0 +1,3 @@
+function includedFunction() {
+    return 42;
+}

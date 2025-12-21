@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 
 import com.alibaba.fastjson.JSON;
 import com.leekwars.api.HttpApi;
+import com.leekwars.definitions.CodeDefinitionTester;
 import com.leekwars.generator.Data;
 import com.leekwars.generator.Generator;
 import com.leekwars.generator.Log;
@@ -41,6 +42,9 @@ public class Main {
 					case "dbresolver": db_resolver = true; break;
 					case "verbose": verbose = true; break;
 					case "analyze": analyze = true; break;
+					case "test_definitions":
+						new CodeDefinitionTester();
+						return;
 				}
 				if (arg.startsWith("--farmer=")) {
 					farmer = Integer.parseInt(arg.substring("--farmer=".length()));
