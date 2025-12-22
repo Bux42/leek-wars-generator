@@ -67,7 +67,7 @@ public class Generator {
 		DefinitionsResult result = new DefinitionsResult();
 
 		if (debug) {
-			System.out.println("Analyzing AI " + ai + "..." + ai.hashCode());
+			System.out.println("Get definitions for AI " + ai + "..." + ai.hashCode());
 		}
 
 		try {
@@ -80,7 +80,7 @@ public class Generator {
 			context.clearVariableParentBlockReferences();
 		} catch (Exception e) {
 			e.printStackTrace(System.out);
-			result.exception = e;
+			result.setException(e);
 		}
 
 		return result;
