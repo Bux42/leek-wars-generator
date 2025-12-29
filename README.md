@@ -51,7 +51,7 @@ java -jar generator.jar --analyze test/ai/basic.leek
 Execute the same scenario multiple times
 
 ```
-java -jar generator.jar .test/scenario/scenario1.json --run_count=10
+java -jar generator.jar test/scenario/scenario1.json --run_count=10
 ```
 
 Simple output:
