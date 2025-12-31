@@ -16,6 +16,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.leekwars.api.logging.LoggingHandler;
 import com.leekwars.generator.Generator;
+import com.leekwars.pool.leek.Leek;
 
 import leekscript.compiler.AIFile;
 import leekscript.compiler.IACompiler.AnalyzeResult;
@@ -63,6 +64,11 @@ public class HttpApi {
         // CodeDefinition enpoints
         server.createContext("/api/get-definitions", new LoggingHandler(new CodeDefinitionHandler()));
 
+        // Pools
+        server.createContext("/api/get-pools", new LoggingHandler(new PoolsHandler()));
+
+        // Leeks
+        server.createContext("/api/get-leeks", new LoggingHandler(new LeeksHandler()));
 
         server.setExecutor(null); // creates a default executor
         server.start();
@@ -245,4 +251,70 @@ public class HttpApi {
             }
         }
     }
+
+    // Pools endpoints
+    static class PoolsHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if (!"POST".equals(exchange.getRequestMethod())) {
+                sendResponse(exchange, 405, "Method not allowed");
+                return;
+            }
+
+            try {
+                JSONObject json = readRequestBody(exchange);
+
+                // For demonstration, we return a static list of pools
+                JSONArray pools = new JSONArray();
+                pools.add("Pool A");
+                pools.add("Pool B");
+                pools.add("Pool C");
+
+                JSONObject response = new JSONObject();
+                response.put("pools", pools);
+                response.put("success", true);
+
+                sendJsonResponse(exchange, 200, response);
+
+            } catch (Exception e) {
+                System.err.println("Error in PoolsHandler: " + e.getMessage());
+                e.printStackTrace();
+                sendResponse(exchange, 500, "Internal server error: " + e.getMessage());
+            }
+        }
+    }
+
+    // Leeks endpoints
+    static class LeeksHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if (!"GET".equals(exchange.getRequestMethod())) {
+                sendResponse(exchange, 405, "Method not allowed");
+                return;
+            }
+            try {
+                JSONObject json = readRequestBody(exchange);
+
+                // For demonstration, we return a static list of leeks
+                JSONArray leeks = new JSONArray();
+                Leek e = new Leek();
+                e.name = "Leek 1";
+                leeks.add(e);
+                leeks.add(new Leek());
+                leeks.add(new Leek());
+                leeks.add(new Leek());
+                
+                JSONObject response = new JSONObject();
+                response.put("leeks", leeks);
+                response.put("success", true);
+
+                sendJsonResponse(exchange, 200, response);
+
+            } catch (Exception e) {
+                System.err.println("Error in LeeksHandler: " + e.getMessage());
+                e.printStackTrace();
+                sendResponse(exchange, 500, "Internal server error: " + e.getMessage());
+            }
+        }
+    }   
 }
