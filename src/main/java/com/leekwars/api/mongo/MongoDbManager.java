@@ -425,4 +425,42 @@ public class MongoDbManager {
             return null;
         }
     }
+    
+    /**
+     * Add a leek ID to a 1v1 pool's leek_ids list
+     * @param poolId The unique ID of the pool
+     * @param leekId The leek ID to add to the pool
+     * @return true if leek was added successfully, false otherwise
+     */
+    public boolean addLeekToPool1v1(String poolId, String leekId) {
+        if (!isConnected || database == null) {
+            System.err.println("Not connected to MongoDB database");
+            return false;
+        }
+        
+        try {
+            MongoCollection<Document> poolsCollection = database.getCollection("pools");
+            
+            // Create filter to find the pool by ID
+            Bson filter = Filters.eq("id", poolId);
+            
+            // Create update to add leek ID to the array
+            Bson updateOperation = Updates.addToSet("leek_ids", leekId);
+            
+            // Perform the update
+            UpdateResult result = poolsCollection.updateOne(filter, updateOperation);
+            
+            if (result.getMatchedCount() > 0) {
+                System.out.println("Successfully added leek " + leekId + " to 1v1 pool with ID: " + poolId);
+                return true;
+            } else {
+                System.err.println("No 1v1 pool found with ID: " + poolId);
+                return false;
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to add leek to 1v1 pool: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
 }

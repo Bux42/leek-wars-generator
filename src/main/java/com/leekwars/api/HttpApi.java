@@ -88,6 +88,7 @@ public class HttpApi {
         server.createContext("/api/pool1v1/delete", new LoggingHandler(new DeletePool1v1Handler()));
         server.createContext("/api/pool1v1/clear-stats", new LoggingHandler(new ClearPool1v1StatsHandler()));
         server.createContext("/api/pool1v1/set-enabled", new LoggingHandler(new SetPool1v1EnabledHandler()));
+        server.createContext("/api/pool1v1/add-leek", new LoggingHandler(new AddLeekToPool1v1Handler()));
 
         // Leeks
         server.createContext("/api/get-leeks", new LoggingHandler(new LeeksHandler()));
@@ -819,6 +820,56 @@ public class HttpApi {
 
             } catch (Exception e) {
                 System.err.println("Error in SetPool1v1EnabledHandler: " + e.getMessage());
+                e.printStackTrace();
+                sendResponse(exchange, 500, "Internal server error: " + e.getMessage());
+            }
+        }
+    }
+
+    // Add Leek to Pool 1v1 endpoint
+    static class AddLeekToPool1v1Handler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if (!"POST".equals(exchange.getRequestMethod())) {
+                sendResponse(exchange, 405, "Method not allowed");
+                return;
+            }
+            try {
+                JSONObject json = readRequestBody(exchange);
+
+                // Check if MongoDB is connected
+                if (mongoDbManager == null || !mongoDbManager.isConnected()) {
+                    sendResponse(exchange, 503, "Database not available");
+                    return;
+                }
+
+                String poolId = json.getString("pool_id");
+                String leekId = json.getString("leek_id");
+                
+                if (poolId == null || poolId.isEmpty()) {
+                    sendResponse(exchange, 400, "Missing required field: pool_id");
+                    return;
+                }
+                
+                if (leekId == null || leekId.isEmpty()) {
+                    sendResponse(exchange, 400, "Missing required field: leek_id");
+                    return;
+                }
+
+                // Add leek to pool
+                boolean success = mongoDbManager.addLeekToPool1v1(poolId, leekId);
+
+                if (success) {
+                    JSONObject response = new JSONObject();
+                    response.put("success", true);
+                    response.put("message", "Leek added to pool successfully");
+                    sendJsonResponse(exchange, 200, response);
+                } else {
+                    sendResponse(exchange, 404, "Pool not found");
+                }
+
+            } catch (Exception e) {
+                System.err.println("Error in AddLeekToPool1v1Handler: " + e.getMessage());
                 e.printStackTrace();
                 sendResponse(exchange, 500, "Internal server error: " + e.getMessage());
             }
