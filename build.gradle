@@ -1,7 +1,10 @@
 apply plugin: 'java'
 
-sourceCompatibility = JavaVersion.VERSION_24
-targetCompatibility = JavaVersion.VERSION_24
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(24)
+	}
+}
 
 sourceSets {
 	main {
@@ -11,11 +14,11 @@ sourceSets {
 	}
 }
 
-test {
-	testLogging {
-		events "passed", "skipped", "failed"
-	}
-}
+// test {
+// 	testLogging {
+// 		events "passed", "skipped", "failed"
+// 	}
+// }
 
 jar {
 	archiveBaseName = "generator"
@@ -39,4 +42,5 @@ dependencies {
 	implementation project(':leekscript')
 	implementation group: 'com.alibaba', name: 'fastjson', version: '1.1.25'
 	implementation group: 'org.postgresql', name: 'postgresql', version: '42.2.5'
+	implementation group: 'org.mongodb', name: 'mongodb-driver-sync', version: '4.11.1'
 }

@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 
 import com.alibaba.fastjson.JSON;
 import com.leekwars.api.HttpApi;
+import com.leekwars.api.mongo.MongoDbManager;
 import com.leekwars.definitions.CodeDefinitionTester;
 import com.leekwars.generator.Data;
 import com.leekwars.generator.Generator;
@@ -44,6 +45,9 @@ public class Main {
 					case "analyze": analyze = true; break;
 					case "test_definitions":
 						new CodeDefinitionTester();
+						return;
+					case "test-database":
+						testDatabase();
 						return;
 				}
 				if (arg.startsWith("--farmer=")) {
@@ -171,5 +175,83 @@ public class Main {
 			System.out.println("Exception while getting definitions: " + e.getMessage());
 			e.printStackTrace();
 		}
+	}
+
+	public static void testDatabase() {
+		System.out.println("=== Testing MongoDB Connection ===");
+		
+		String connectionString = "mongodb://localhost:27017";
+		String databaseName = "leekwars";
+		
+		System.out.println("Attempting to connect to: " + connectionString);
+		System.out.println("Database: " + databaseName);
+		
+		MongoDbManager mongoManager = new MongoDbManager(connectionString);
+		
+		boolean success = mongoManager.connect(databaseName);
+		
+		if (success) {
+			System.out.println("✓ Successfully connected to MongoDB!");
+			System.out.println("✓ Connection is active: " + mongoManager.isConnected());
+			
+			// Test adding a new leek
+			System.out.println("\n--- Testing addLeek() ---");
+			org.bson.Document leekData = new org.bson.Document()
+					.append("name", "Test Leek")
+					.append("level", 1)
+					.append("health", 100)
+					.append("strength", 10);
+			
+			String leekId = mongoManager.addLeek(leekData);
+			
+			if (leekId != null) {
+				System.out.println("✓ Leek created with ID: " + leekId);
+				
+				// Test updating the leek
+				System.out.println("\n--- Testing updateLeek() ---");
+				org.bson.Document updates = new org.bson.Document()
+						.append("level", 2)
+						.append("health", 150)
+						.append("strength", 15);
+				
+				boolean updateSuccess = mongoManager.updateLeek(leekId, updates);
+				if (updateSuccess) {
+					System.out.println("✓ Leek updated successfully");
+				} else {
+					System.out.println("✗ Failed to update leek");
+				}
+				
+				// // Test deleting the leek
+				// System.out.println("\n--- Testing deleteLeek() ---");
+				// boolean deleteSuccess = mongoManager.deleteLeek(leekId);
+				// if (deleteSuccess) {
+				// 	System.out.println("✓ Leek deleted successfully");
+				// } else {
+				// 	System.out.println("✗ Failed to delete leek");
+				// }
+			} else {
+				System.out.println("✗ Failed to create leek");
+			}
+			
+			// Test collection access
+			System.out.println("\n--- Testing collection access ---");
+			try {
+				var collection = mongoManager.getCollection("leeks");
+				if (collection != null) {
+					System.out.println("✓ Successfully accessed collection: leeks");
+					System.out.println("✓ Collection document count: " + collection.countDocuments());
+				}
+			} catch (Exception e) {
+				System.out.println("✗ Error accessing collection: " + e.getMessage());
+			}
+			
+			mongoManager.close();
+			System.out.println("\n✓ Connection closed successfully");
+		} else {
+			System.out.println("✗ Failed to connect to MongoDB");
+			System.out.println("  Make sure MongoDB is running at " + connectionString);
+		}
+		
+		System.out.println("=== Test Complete ===");
 	}
 }
