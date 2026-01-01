@@ -556,7 +556,7 @@ public class HttpApi {
                 JSONArray leekIds = json.getJSONArray("leek_ids");
                 String name = json.getString("name");
 
-                if (leekIds == null || leekIds.isEmpty() || name == null || name.isEmpty()) {
+                if (leekIds == null || name == null || name.isEmpty()) {
                     sendResponse(exchange, 400, "Missing required fields: leek_ids (non-empty array), name");
                     return;
                 }
