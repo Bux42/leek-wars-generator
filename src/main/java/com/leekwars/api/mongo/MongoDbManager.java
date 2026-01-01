@@ -230,7 +230,7 @@ public class MongoDbManager {
             }
             
             // Insert into the pools collection
-            MongoCollection<Document> poolsCollection = database.getCollection("pools");
+            MongoCollection<Document> poolsCollection = database.getCollection("pools_1v1");
             poolsCollection.insertOne(poolData);
             
             System.out.println("Successfully added 1v1 pool with ID: " + poolData.getString("id"));
@@ -252,7 +252,7 @@ public class MongoDbManager {
             return null;
         }
         
-        return database.getCollection("pools");
+        return database.getCollection("pools_1v1");
     }
     
     /**
@@ -268,7 +268,7 @@ public class MongoDbManager {
         }
         
         try {
-            MongoCollection<Document> poolsCollection = database.getCollection("pools");
+            MongoCollection<Document> poolsCollection = database.getCollection("pools_1v1");
             
             // Create filter to find the pool by ID
             Bson filter = Filters.eq("id", poolId);
@@ -305,7 +305,7 @@ public class MongoDbManager {
         }
         
         try {
-            MongoCollection<Document> poolsCollection = database.getCollection("pools");
+            MongoCollection<Document> poolsCollection = database.getCollection("pools_1v1");
             
             // Create filter to find the pool by ID
             Bson filter = Filters.eq("id", poolId);
@@ -339,7 +339,7 @@ public class MongoDbManager {
         }
         
         try {
-            MongoCollection<Document> poolsCollection = database.getCollection("pools");
+            MongoCollection<Document> poolsCollection = database.getCollection("pools_1v1");
             
             // Create filter to find the pool by ID
             Bson filter = Filters.eq("id", poolId);
@@ -379,7 +379,7 @@ public class MongoDbManager {
         }
         
         try {
-            MongoCollection<Document> poolsCollection = database.getCollection("pools");
+            MongoCollection<Document> poolsCollection = database.getCollection("pools_1v1");
             
             // Create filter to find the pool by ID
             Bson filter = Filters.eq("id", poolId);
@@ -439,7 +439,7 @@ public class MongoDbManager {
         }
         
         try {
-            MongoCollection<Document> poolsCollection = database.getCollection("pools");
+            MongoCollection<Document> poolsCollection = database.getCollection("pools_1v1");
             
             // Create filter to find the pool by ID
             Bson filter = Filters.eq("id", poolId);
