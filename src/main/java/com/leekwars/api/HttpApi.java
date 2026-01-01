@@ -22,6 +22,7 @@ import com.leekwars.api.mongo.MongoDbManager;
 import com.leekwars.api.mongo.scenarios.PoolOneVersusOne;
 import com.leekwars.generator.Generator;
 import com.leekwars.pool.leek.Leek;
+import com.leekwars.pool.PoolManager;
 import org.bson.Document;
 
 import leekscript.compiler.AIFile;
@@ -35,6 +36,7 @@ public class HttpApi {
     private static int port = DEFAULT_PORT;
     private static FileManager fileManager = new FileManager();
     private static MongoDbManager mongoDbManager;
+    private static PoolManager poolManager;
 
     public static void main(String[] args) throws IOException {
         System.out.println("Starting LeekScript Code Analysis Server...");
@@ -68,6 +70,9 @@ public class HttpApi {
         } else {
             System.err.println("Failed to connect to MongoDB. Leek operations will not be available.");
         }
+        
+        // Initialize PoolManager
+        poolManager = new PoolManager(mongoDbManager);
 
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
 
@@ -82,6 +87,8 @@ public class HttpApi {
 
         // Pools
         server.createContext("/api/get-pools", new LoggingHandler(new PoolsHandler()));
+
+        // Pool 1v1 endpoints
         server.createContext("/api/pool1v1/add", new LoggingHandler(new AddPool1v1Handler()));
         server.createContext("/api/pool1v1/list", new LoggingHandler(new ListPool1v1Handler()));
         server.createContext("/api/pool1v1/update", new LoggingHandler(new UpdatePool1v1Handler()));
@@ -89,6 +96,8 @@ public class HttpApi {
         server.createContext("/api/pool1v1/clear-stats", new LoggingHandler(new ClearPool1v1StatsHandler()));
         server.createContext("/api/pool1v1/set-enabled", new LoggingHandler(new SetPool1v1EnabledHandler()));
         server.createContext("/api/pool1v1/add-leek", new LoggingHandler(new AddLeekToPool1v1Handler()));
+        server.createContext("/api/pool1v1/start-pool", new LoggingHandler(new StartPool1v1Handler()));
+        server.createContext("/api/pool1v1/stop-pool", new LoggingHandler(new StopPool1v1Handler()));
 
         // Leeks
         server.createContext("/api/get-leeks", new LoggingHandler(new LeeksHandler()));
@@ -870,6 +879,98 @@ public class HttpApi {
 
             } catch (Exception e) {
                 System.err.println("Error in AddLeekToPool1v1Handler: " + e.getMessage());
+                e.printStackTrace();
+                sendResponse(exchange, 500, "Internal server error: " + e.getMessage());
+            }
+        }
+    }
+
+    // Start Pool 1v1 endpoint
+    static class StartPool1v1Handler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if (!"POST".equals(exchange.getRequestMethod())) {
+                sendResponse(exchange, 405, "Method not allowed");
+                return;
+            }
+            try {
+                JSONObject json = readRequestBody(exchange);
+
+                // Check if MongoDB is connected
+                if (mongoDbManager == null || !mongoDbManager.isConnected()) {
+                    sendResponse(exchange, 503, "Database not available");
+                    return;
+                }
+                
+                // Check if PoolManager is available
+                if (poolManager == null) {
+                    sendResponse(exchange, 503, "PoolManager not available");
+                    return;
+                }
+
+                String poolId = json.getString("id");
+                if (poolId == null || poolId.isEmpty()) {
+                    sendResponse(exchange, 400, "Missing required field: id");
+                    return;
+                }
+
+                // Start the pool
+                boolean success = poolManager.startPool1v1(poolId);
+
+                if (success) {
+                    JSONObject response = new JSONObject();
+                    response.put("success", true);
+                    response.put("message", "Pool started successfully");
+                    sendJsonResponse(exchange, 200, response);
+                } else {
+                    sendResponse(exchange, 400, "Pool not found or already running");
+                }
+
+            } catch (Exception e) {
+                System.err.println("Error in StartPool1v1Handler: " + e.getMessage());
+                e.printStackTrace();
+                sendResponse(exchange, 500, "Internal server error: " + e.getMessage());
+            }
+        }
+    }
+    
+    // Stop Pool 1v1 endpoint
+    static class StopPool1v1Handler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if (!"POST".equals(exchange.getRequestMethod())) {
+                sendResponse(exchange, 405, "Method not allowed");
+                return;
+            }
+            try {
+                JSONObject json = readRequestBody(exchange);
+                
+                // Check if PoolManager is available
+                if (poolManager == null) {
+                    sendResponse(exchange, 503, "PoolManager not available");
+                    return;
+                }
+
+                String poolId = json.getString("id");
+                if (poolId == null || poolId.isEmpty()) {
+                    sendResponse(exchange, 400, "Missing required field: id");
+                    return;
+                }
+
+                // Stop the pool
+                boolean success = poolManager.stopPool1v1(poolId);
+
+                if (success) {
+                    JSONObject response = new JSONObject();
+                    response.put("success", true);
+                    response.put("message", "Pool stopped successfully");
+                    sendJsonResponse(exchange, 200, response);
+                } else {
+                    sendResponse(exchange, 400, "Pool is not running");
+                }
+
+            } catch (Exception e) {
+                System.err.println("Error in StopPool1v1Handler: " + e.getMessage());
                 e.printStackTrace();
                 sendResponse(exchange, 500, "Internal server error: " + e.getMessage());
             }

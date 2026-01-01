@@ -11,6 +11,9 @@ import com.mongodb.client.result.UpdateResult;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import java.util.UUID;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.leekwars.api.mongo.scenarios.PoolOneVersusOne;
 
 public class MongoDbManager {
     private MongoClient mongoClient;
@@ -422,6 +425,37 @@ public class MongoDbManager {
             return leeksCollection.find(filter).first();
         } catch (Exception e) {
             System.err.println("Failed to get leek by ID: " + e.getMessage());
+            return null;
+        }
+    }
+    
+    /**
+     * Get a 1v1 pool by its ID
+     * @param poolId The unique ID of the pool
+     * @return PoolOneVersusOne object, or null if not found
+     */
+    public PoolOneVersusOne getPool1v1ById(String poolId) {
+        if (!isConnected || database == null) {
+            System.err.println("Not connected to MongoDB database");
+            return null;
+        }
+        
+        try {
+            MongoCollection<Document> poolsCollection = database.getCollection("pools_1v1");
+            Bson filter = Filters.eq("id", poolId);
+            Document doc = poolsCollection.find(filter).first();
+            
+            if (doc != null) {
+                // Convert Document to JSON and then to PoolOneVersusOne
+                String docJson = doc.toJson();
+                JSONObject jsonObject = JSON.parseObject(docJson);
+                jsonObject.remove("_id"); // Remove MongoDB's _id field
+                return PoolOneVersusOne.fromJson(jsonObject);
+            }
+            
+            return null;
+        } catch (Exception e) {
+            System.err.println("Failed to get 1v1 pool by ID: " + e.getMessage());
             return null;
         }
     }
