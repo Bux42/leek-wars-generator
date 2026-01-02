@@ -45,7 +45,7 @@ public class PoolManager {
                 // Get current pool data
                 PoolOneVersusOne currentPool = mongoDbManager.getPool1v1ById(poolId);
                 if (currentPool != null) {
-                    int newTotal = currentPool.total_fights + 1;
+                    int newTotal = currentPool.total_executed_fights + 1;
                     
                     // Update database
                     org.bson.Document updates = new org.bson.Document("total_fights", newTotal);

@@ -11,8 +11,11 @@ public class PoolOneVersusOne {
     public String id;
     public boolean enabled = true;
 
+    public boolean fight_count_limit_enabled = false;
+    public int fight_count_limit = 10;
+
     // stats after running the pool
-    public int total_fights = 0;
+    public int total_executed_fights = 0;
 
     public PoolOneVersusOne(List<String> leek_ids, String name, String id) {
         this.leek_ids = leek_ids;
@@ -44,7 +47,7 @@ public class PoolOneVersusOne {
         }
         
         if (json.containsKey("total_fights")) {
-            pool.total_fights = json.getIntValue("total_fights");
+            pool.total_executed_fights = json.getIntValue("total_fights");
         }
         
         return pool;

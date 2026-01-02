@@ -98,6 +98,8 @@ public class HttpApi {
         server.createContext("/api/pool1v1/add-leek", new LoggingHandler(new AddLeekToPool1v1Handler()));
         server.createContext("/api/pool1v1/start-pool", new LoggingHandler(new StartPool1v1Handler()));
         server.createContext("/api/pool1v1/stop-pool", new LoggingHandler(new StopPool1v1Handler()));
+        server.createContext("/api/pool1v1/enable-fight-limit", new LoggingHandler(new EnablePool1v1FightLimitHandler()));
+        server.createContext("/api/pool1v1/disable-fight-limit", new LoggingHandler(new DisablePool1v1FightLimitHandler()));
 
         // Leeks
         server.createContext("/api/get-leeks", new LoggingHandler(new LeeksHandler()));
@@ -971,6 +973,104 @@ public class HttpApi {
 
             } catch (Exception e) {
                 System.err.println("Error in StopPool1v1Handler: " + e.getMessage());
+                e.printStackTrace();
+                sendResponse(exchange, 500, "Internal server error: " + e.getMessage());
+            }
+        }
+    }
+    
+    // Enable Pool 1v1 Fight Count Limit endpoint
+    static class EnablePool1v1FightLimitHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if (!"POST".equals(exchange.getRequestMethod())) {
+                sendResponse(exchange, 405, "Method not allowed");
+                return;
+            }
+            try {
+                JSONObject json = readRequestBody(exchange);
+
+                // Check if MongoDB is connected
+                if (mongoDbManager == null || !mongoDbManager.isConnected()) {
+                    sendResponse(exchange, 503, "Database not available");
+                    return;
+                }
+
+                String poolId = json.getString("id");
+                if (poolId == null || poolId.isEmpty()) {
+                    sendResponse(exchange, 400, "Missing required field: id");
+                    return;
+                }
+                
+                if (!json.containsKey("limit")) {
+                    sendResponse(exchange, 400, "Missing required field: limit");
+                    return;
+                }
+                
+                int limit = json.getIntValue("limit");
+                if (limit <= 0) {
+                    sendResponse(exchange, 400, "Limit must be greater than 0");
+                    return;
+                }
+
+                // Enable fight count limit
+                boolean success = mongoDbManager.enablePool1v1FightCountLimit(poolId, limit);
+
+                if (success) {
+                    JSONObject response = new JSONObject();
+                    response.put("success", true);
+                    response.put("message", "Fight count limit enabled successfully");
+                    response.put("limit", limit);
+                    sendJsonResponse(exchange, 200, response);
+                } else {
+                    sendResponse(exchange, 404, "Pool not found");
+                }
+
+            } catch (Exception e) {
+                System.err.println("Error in EnablePool1v1FightLimitHandler: " + e.getMessage());
+                e.printStackTrace();
+                sendResponse(exchange, 500, "Internal server error: " + e.getMessage());
+            }
+        }
+    }
+    
+    // Disable Pool 1v1 Fight Count Limit endpoint
+    static class DisablePool1v1FightLimitHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if (!"POST".equals(exchange.getRequestMethod())) {
+                sendResponse(exchange, 405, "Method not allowed");
+                return;
+            }
+            try {
+                JSONObject json = readRequestBody(exchange);
+
+                // Check if MongoDB is connected
+                if (mongoDbManager == null || !mongoDbManager.isConnected()) {
+                    sendResponse(exchange, 503, "Database not available");
+                    return;
+                }
+
+                String poolId = json.getString("id");
+                if (poolId == null || poolId.isEmpty()) {
+                    sendResponse(exchange, 400, "Missing required field: id");
+                    return;
+                }
+
+                // Disable fight count limit
+                boolean success = mongoDbManager.disablePool1v1FightCountLimit(poolId);
+
+                if (success) {
+                    JSONObject response = new JSONObject();
+                    response.put("success", true);
+                    response.put("message", "Fight count limit disabled successfully");
+                    sendJsonResponse(exchange, 200, response);
+                } else {
+                    sendResponse(exchange, 404, "Pool not found");
+                }
+
+            } catch (Exception e) {
+                System.err.println("Error in DisablePool1v1FightLimitHandler: " + e.getMessage());
                 e.printStackTrace();
                 sendResponse(exchange, 500, "Internal server error: " + e.getMessage());
             }

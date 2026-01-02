@@ -497,4 +497,84 @@ public class MongoDbManager {
             return false;
         }
     }
+    
+    /**
+     * Enable fight count limit for a 1v1 pool and set the limit value
+     * @param poolId The unique ID of the pool
+     * @param limit The fight count limit to set
+     * @return true if limit was enabled successfully, false otherwise
+     */
+    public boolean enablePool1v1FightCountLimit(String poolId, int limit) {
+        if (!isConnected || database == null) {
+            System.err.println("Not connected to MongoDB database");
+            return false;
+        }
+        
+        try {
+            MongoCollection<Document> poolsCollection = database.getCollection("pools_1v1");
+            
+            // Create filter to find the pool by ID
+            Bson filter = Filters.eq("id", poolId);
+            
+            // Create update to enable fight count limit and set the limit
+            Document updates = new Document()
+                .append("fight_count_limit_enabled", true)
+                .append("fight_count_limit", limit);
+            
+            Bson updateOperation = new Document("$set", updates);
+            
+            // Perform the update
+            UpdateResult result = poolsCollection.updateOne(filter, updateOperation);
+            
+            if (result.getMatchedCount() > 0) {
+                System.out.println("Successfully enabled fight count limit (" + limit + ") for 1v1 pool with ID: " + poolId);
+                return true;
+            } else {
+                System.err.println("No 1v1 pool found with ID: " + poolId);
+                return false;
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to enable fight count limit for 1v1 pool: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    /**
+     * Disable fight count limit for a 1v1 pool
+     * @param poolId The unique ID of the pool
+     * @return true if limit was disabled successfully, false otherwise
+     */
+    public boolean disablePool1v1FightCountLimit(String poolId) {
+        if (!isConnected || database == null) {
+            System.err.println("Not connected to MongoDB database");
+            return false;
+        }
+        
+        try {
+            MongoCollection<Document> poolsCollection = database.getCollection("pools_1v1");
+            
+            // Create filter to find the pool by ID
+            Bson filter = Filters.eq("id", poolId);
+            
+            // Create update to disable fight count limit
+            Document updates = new Document("fight_count_limit_enabled", false);
+            Bson updateOperation = new Document("$set", updates);
+            
+            // Perform the update
+            UpdateResult result = poolsCollection.updateOne(filter, updateOperation);
+            
+            if (result.getMatchedCount() > 0) {
+                System.out.println("Successfully disabled fight count limit for 1v1 pool with ID: " + poolId);
+                return true;
+            } else {
+                System.err.println("No 1v1 pool found with ID: " + poolId);
+                return false;
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to disable fight count limit for 1v1 pool: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
 }
