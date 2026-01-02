@@ -401,4 +401,30 @@ public class FileManager {
             return String.format("%.1f %s", bytes / Math.pow(1024, exp), pre);
         }
     }
+
+    /**
+     * Sanitize an absolute file path to prevent directory traversal
+     */
+    public static String sanitizeAbsoluteFilePath(String absolutePath) {
+        try {
+            Path path = Paths.get(absolutePath).toRealPath();
+            return path.toString();
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Convert an absolute path to a relative path from the relative root
+     */
+    public static String absolutePathToRelative(String absolutePath) {
+        try {
+            Path path = Paths.get(absolutePath).toRealPath();
+            Path root = Paths.get(System.getProperty("user.dir")).toRealPath();
+            String relativePath = root.relativize(path).toString();
+            return relativePath.replace("\\", "/");
+        } catch (IOException e) {
+            return null;
+        }
+    }
 }
