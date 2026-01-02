@@ -407,7 +407,7 @@ public class MongoDbManager {
             return false;
         }
     }
-    
+
     /**
      * Get a leek document by its ID
      * @param leekId The unique ID of the leek
@@ -573,6 +573,52 @@ public class MongoDbManager {
             }
         } catch (Exception e) {
             System.err.println("Failed to disable fight count limit for 1v1 pool: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    /**
+     * Reset elo for all leeks in a 1v1 pool
+     * @param poolId The unique ID of the pool
+     * @param elo The elo value to reset all leeks to
+     * @return true if all leeks' elo were reset successfully, false otherwise
+     */
+    public boolean resetPool1v1LeeksElo(String poolId, int elo) {
+        if (!isConnected || database == null) {
+            System.err.println("Not connected to MongoDB database");
+            return false;
+        }
+        
+        try {
+            // Get the pool to access its leek_ids
+            PoolOneVersusOne pool = getPool1v1ById(poolId);
+            if (pool == null) {
+                System.err.println("No 1v1 pool found with ID: " + poolId);
+                return false;
+            }
+            
+            MongoCollection<Document> leeksCollection = database.getCollection("leeks");
+            int updatedCount = 0;
+            
+            // Update elo for each leek in the pool
+            for (String leekId : pool.leek_ids) {
+                Bson filter = Filters.eq("id", leekId);
+                Document updates = new Document("elo", elo);
+                Bson updateOperation = new Document("$set", updates);
+                
+                UpdateResult result = leeksCollection.updateOne(filter, updateOperation);
+                if (result.getMatchedCount() > 0) {
+                    updatedCount++;
+                } else {
+                    System.err.println("Warning: Leek with ID " + leekId + " not found");
+                }
+            }
+            
+            System.out.println("Successfully reset elo to " + elo + " for " + updatedCount + " leeks in pool " + poolId);
+            return updatedCount > 0;
+        } catch (Exception e) {
+            System.err.println("Failed to reset leeks' elo for pool: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
