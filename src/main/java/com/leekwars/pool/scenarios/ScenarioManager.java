@@ -10,7 +10,7 @@ import com.leekwars.generator.scenario.TeamInfo;
 import com.leekwars.pool.leek.Leek;
 
 public class ScenarioManager {
-    public Scenario Create1v1Scenario(int customSeed, Leek leek1, Leek leek2) {
+    public static Scenario Create1v1Scenario(int customSeed, Leek leek1, Leek leek2) {
         Scenario scenario = new Scenario();
 
         FarmerInfo farmer1 = new FarmerInfo();

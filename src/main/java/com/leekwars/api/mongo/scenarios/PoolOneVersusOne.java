@@ -2,10 +2,17 @@ package com.leekwars.api.mongo.scenarios;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.leekwars.generator.scenario.Scenario;
+import com.leekwars.pool.leek.Leek;
+import com.leekwars.pool.scenarios.OneVersusOneScenario;
+import com.leekwars.pool.scenarios.ScenarioManager;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class PoolOneVersusOne {
+    private List<Leek> leeks;
+    private List<OneVersusOneScenario> scenarios;
     public List<String> leek_ids;
     public String name;
     public String id;
@@ -51,5 +58,27 @@ public class PoolOneVersusOne {
         }
         
         return pool;
+    }
+
+    public void SetLeeks(List<Leek> leeks) {
+        this.leeks = leeks;
+    }
+
+    public void GenerateAllMatchupsScenarios(List<Leek> leeks) {
+        // ArrayList<PoolScenario> poolScenarios = new ArrayList<>();
+        scenarios = new ArrayList<>();
+        for (int i = 0; i < leeks.size(); i++) {
+            for (int j = 0; j < leeks.size(); j++) {
+                if (i != j) {
+                    Scenario scenario = ScenarioManager.Create1v1Scenario(0, leeks.get(i), leeks.get(j));
+                    OneVersusOneScenario oneVsOneScenario = new OneVersusOneScenario(leeks.get(i), leeks.get(j), scenario);
+                    scenarios.add(oneVsOneScenario);
+                }
+            }
+        }
+    }
+
+    public List<OneVersusOneScenario> GetScenarios() {
+        return scenarios;
     }
 }

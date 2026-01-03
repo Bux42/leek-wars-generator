@@ -916,6 +916,16 @@ public class HttpApi {
                     return;
                 }
 
+                Boolean resetElo = json.getBoolean("reset_elo");
+                if (resetElo != null && resetElo) {
+                    // Reset elo for all leeks in the pool
+                    boolean resetSuccess = mongoDbManager.resetPool1v1LeeksElo(poolId, 100);
+                    if (!resetSuccess) {
+                        sendResponse(exchange, 500, "Failed to reset leeks' elo");
+                        return;
+                    }
+                }
+
                 // Start the pool
                 boolean success = poolManager.startPool1v1(poolId);
 
