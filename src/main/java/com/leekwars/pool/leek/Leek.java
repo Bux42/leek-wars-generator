@@ -38,8 +38,15 @@ public class Leek extends Entity {
         }
         
         // Set Leek specific fields
+
+        // If json comes from MongoDB, _id is an object with $oid field
         if (json.containsKey("_id")) {
             leek.id = json.getJSONObject("_id").getString("$oid").toString();
+        }
+
+        // else, it's from the frontend API, so id is a string field
+        else if (json.containsKey("id")) {
+            leek.id = json.getString("id");
         }
         
         if (json.containsKey("elo")) {
