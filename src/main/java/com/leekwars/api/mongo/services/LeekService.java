@@ -57,4 +57,18 @@ public class LeekService {
     public boolean deleteLeek(String id) {
         return this.leeks.delete(id);
     }
+
+    public boolean updateLeek(Leek leek) {
+        // Convert Leek instance to MongoDB Document
+        String leekJson = com.alibaba.fastjson.JSON.toJSONString(leek);
+        var leekData = org.bson.Document.parse(leekJson);
+
+        String leekId = leek.id;
+
+        // remove id from document as it's used as _id in MongoDB
+        leekData.remove("id");
+
+        // Update leek in database
+        return this.leeks.update(leekData, leekId);
+    }
 }

@@ -8,6 +8,7 @@ import org.bson.types.ObjectId;
 import com.leekwars.api.mongo.config.MongoClientProvider;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.result.DeleteResult;
+import com.mongodb.client.result.UpdateResult;
 
 public class LeekRepository {
     private final MongoCollection<Document> leeks;
@@ -29,8 +30,9 @@ public class LeekRepository {
         leeks.insertOne(leek);
     }
 
-    public void update(Document leek) {
-        leeks.replaceOne(new Document("_id", leek.getString("_id")), leek);
+    public boolean update(Document leek, String id) {
+        UpdateResult result = leeks.replaceOne(new Document("_id", new ObjectId(id)), leek);
+        return result.getModifiedCount() > 0;
     }
 
     public boolean delete(String id) {

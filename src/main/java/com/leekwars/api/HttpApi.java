@@ -15,6 +15,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.leekwars.api.endpoints.leeks.AddLeekHandler;
 import com.leekwars.api.endpoints.leeks.DeleteLeekHandler;
 import com.leekwars.api.endpoints.leeks.GetLeeksHandler;
+import com.leekwars.api.endpoints.leeks.UpdateLeekHandler;
 import com.leekwars.api.endpoints.pools.GetPoolsHandler;
 import com.leekwars.api.endpoints.pools.duel.AddLeekToPoolDuelHandler;
 import com.leekwars.api.endpoints.pools.duel.AddPoolDuelHandler;
@@ -133,6 +134,8 @@ public class HttpApi {
                 new MongoHandler(mongoClientProvider, new AddLeekHandler(leekService))));
         server.createContext("/api/leeks/delete", new LoggingHandler(
                 new MongoHandler(mongoClientProvider, new DeleteLeekHandler(leekService))));
+        server.createContext("/api/leeks/update", new LoggingHandler(
+                new MongoHandler(mongoClientProvider, new UpdateLeekHandler(leekService))));
 
         // File browsing endpoints
         server.createContext("/api/file/list", new LoggingHandler(new FileListHandler()));
