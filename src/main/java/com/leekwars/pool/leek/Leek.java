@@ -38,8 +38,8 @@ public class Leek extends Entity {
         }
         
         // Set Leek specific fields
-        if (json.containsKey("id")) {
-            leek.id = json.getString("id");
+        if (json.containsKey("_id")) {
+            leek.id = json.getJSONObject("_id").getString("$oid").toString();
         }
         
         if (json.containsKey("elo")) {

@@ -13,6 +13,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.leekwars.api.endpoints.leeks.AddLeekHandler;
+import com.leekwars.api.endpoints.leeks.DeleteLeekHandler;
 import com.leekwars.api.endpoints.leeks.GetLeeksHandler;
 import com.leekwars.api.endpoints.pools.GetPoolsHandler;
 import com.leekwars.api.endpoints.pools.duel.AddLeekToPoolDuelHandler;
@@ -28,6 +29,9 @@ import com.leekwars.api.files.FileManager.FileInfo;
 import com.leekwars.api.middleware.LoggingHandler;
 import com.leekwars.api.middleware.MongoHandler;
 import com.leekwars.api.mongo.MongoDbManager;
+import com.leekwars.api.mongo.config.MongoClientProvider;
+import com.leekwars.api.mongo.repositories.LeekRepository;
+import com.leekwars.api.mongo.services.LeekService;
 import com.leekwars.api.utils.RequestUtils;
 import com.leekwars.generator.Generator;
 import com.leekwars.pool.PoolManager;
@@ -70,6 +74,10 @@ public class HttpApi {
         // Initialize services
         generator = new Generator();
 
+        MongoClientProvider mongoClientProvider = new MongoClientProvider("mongodb://localhost:27017", "leekwars");
+        LeekRepository leekRepository = new LeekRepository(mongoClientProvider);
+        LeekService leekService = new LeekService(leekRepository);
+
         // Initialize MongoDB connection
         mongoDbManager = new MongoDbManager("mongodb://localhost:27017");
         if (mongoDbManager.connect("leekwars")) {
@@ -100,29 +108,31 @@ public class HttpApi {
 
         // Pool duel endpoints
         server.createContext("/api/pools/duel/add", new LoggingHandler(
-                new MongoHandler(mongoDbManager, new AddPoolDuelHandler(mongoDbManager))));
+                new MongoHandler(mongoClientProvider, new AddPoolDuelHandler(mongoDbManager))));
         server.createContext("/api/pools/duel/get-by-id", new LoggingHandler(
-                new MongoHandler(mongoDbManager, new GetPoolDuelHandler(mongoDbManager))));
+                new MongoHandler(mongoClientProvider, new GetPoolDuelHandler(mongoDbManager))));
         server.createContext("/api/pools/duel/list", new LoggingHandler(
-                new MongoHandler(mongoDbManager, new ListPoolDuelHandler(mongoDbManager))));
+                new MongoHandler(mongoClientProvider, new ListPoolDuelHandler(mongoDbManager))));
         server.createContext("/api/pools/duel/update", new LoggingHandler(
-                new MongoHandler(mongoDbManager, new UpdatePoolDuelHandler(mongoDbManager))));
+                new MongoHandler(mongoClientProvider, new UpdatePoolDuelHandler(mongoDbManager))));
         server.createContext("/api/pools/duel/delete", new LoggingHandler(
-                new MongoHandler(mongoDbManager, new DeletePoolDuelHandler(mongoDbManager))));
+                new MongoHandler(mongoClientProvider, new DeletePoolDuelHandler(mongoDbManager))));
         server.createContext("/api/pools/duel/add-leek", new LoggingHandler(
-                new MongoHandler(mongoDbManager, new AddLeekToPoolDuelHandler(mongoDbManager))));
+                new MongoHandler(mongoClientProvider, new AddLeekToPoolDuelHandler(mongoDbManager))));
         server.createContext("/api/pools/duel/start", new LoggingHandler(
-                new MongoHandler(mongoDbManager, new StartPoolDuelHandler(mongoDbManager, poolManager))));
+                new MongoHandler(mongoClientProvider, new StartPoolDuelHandler(mongoDbManager, poolManager))));
         server.createContext("/api/pools/duel/stop", new LoggingHandler(
-                new MongoHandler(mongoDbManager, new StopPoolDuelHandler(mongoDbManager, poolManager))));
+                new MongoHandler(mongoClientProvider, new StopPoolDuelHandler(mongoDbManager, poolManager))));
 
         // Pool duel runs endpoints
 
         // Leeks
-        server.createContext("/api/leeks/get", new LoggingHandler(
-                new MongoHandler(mongoDbManager, new GetLeeksHandler(mongoDbManager))));
+        server.createContext("/api/leeks/list", new LoggingHandler(
+                new MongoHandler(mongoClientProvider, new GetLeeksHandler(leekService))));
         server.createContext("/api/leeks/add", new LoggingHandler(
-                new MongoHandler(mongoDbManager, new AddLeekHandler(mongoDbManager))));
+                new MongoHandler(mongoClientProvider, new AddLeekHandler(leekService))));
+        server.createContext("/api/leeks/delete", new LoggingHandler(
+                new MongoHandler(mongoClientProvider, new DeleteLeekHandler(leekService))));
 
         // File browsing endpoints
         server.createContext("/api/file/list", new LoggingHandler(new FileListHandler()));

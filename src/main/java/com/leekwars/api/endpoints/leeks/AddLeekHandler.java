@@ -2,21 +2,19 @@ package com.leekwars.api.endpoints.leeks;
 
 import java.io.IOException;
 
-import org.bson.Document;
-
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.leekwars.api.mongo.MongoDbManager;
+import com.leekwars.api.mongo.services.LeekService;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.leekwars.api.utils.RequestUtils;
 import com.leekwars.pool.leek.Leek;
 
 public class AddLeekHandler implements HttpHandler {
-    private final MongoDbManager mongoDbManager;
+    private final LeekService leekService;
 
-    public AddLeekHandler(MongoDbManager mongoDbManager) {
-        this.mongoDbManager = mongoDbManager;
+    public AddLeekHandler(LeekService leekService) {
+        this.leekService = leekService;
     }
 
     @Override
@@ -27,12 +25,6 @@ public class AddLeekHandler implements HttpHandler {
         }
         try {
             JSONObject json = RequestUtils.readRequestBody(exchange);
-
-            // Check if MongoDB is connected
-            if (mongoDbManager == null || !mongoDbManager.isConnected()) {
-                RequestUtils.sendResponse(exchange, 503, "Database not available");
-                return;
-            }
 
             // Deserialize JSON into Leek object using fromJson method
             Leek leek = Leek.fromJson(json);
@@ -46,28 +38,19 @@ public class AddLeekHandler implements HttpHandler {
             // Set elo to default value (100)
             leek.elo = 100;
 
-            // Convert the entire Leek object to JSON and then to MongoDB Document
-            String leekJson = JSON.toJSONString(leek);
-            Document leekData = Document.parse(leekJson);
-
             // Add leek to database
-            String leekId = mongoDbManager.addLeek(leekData);
+            String leekId = leekService.addLeek(leek);
 
-            if (leekId != null) {
-                // Set the ID on the leek object
-                leek.id = leekId;
+            // Set the ID on the leek object
+            leek.id = leekId;
 
-                // Return the newly created leek as JSON
-                JSONObject response = new JSONObject();
-                response.put("success", true);
-                response.put("leek", JSON.parseObject(JSON.toJSONString(leek)));
+            // Return the newly created leek as JSON
+            JSONObject response = new JSONObject();
+            response.put("success", true);
+            response.put("leek", JSON.parseObject(JSON.toJSONString(leek)));
 
-                System.out.println("Successfully added leek: " + leek.name + " with ID: " + leekId);
-                RequestUtils.sendJsonResponse(exchange, 201, response);
-            } else {
-                RequestUtils.sendResponse(exchange, 500, "Failed to add leek to database");
-            }
-
+            System.out.println("Successfully added leek: " + leek.name + " with ID: " + leekId);
+            RequestUtils.sendJsonResponse(exchange, 201, response);
         } catch (Exception e) {
             System.err.println("Error in AddLeekHandler: " + e.getMessage());
             e.printStackTrace();

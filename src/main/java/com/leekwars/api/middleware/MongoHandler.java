@@ -3,15 +3,15 @@ package com.leekwars.api.middleware;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import com.leekwars.api.mongo.MongoDbManager;
+import com.leekwars.api.mongo.config.MongoClientProvider;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
 public class MongoHandler implements HttpHandler {
-    private final MongoDbManager mongo;
+    private final MongoClientProvider mongo;
     private final HttpHandler delegate;
 
-    public MongoHandler(MongoDbManager mongo, HttpHandler delegate) {
+    public MongoHandler(MongoClientProvider mongo, HttpHandler delegate) {
         this.mongo = mongo;
         this.delegate = delegate;
     }
