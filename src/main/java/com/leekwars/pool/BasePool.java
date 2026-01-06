@@ -1,4 +1,4 @@
-package com.leekwars.api.mongo.pools;
+package com.leekwars.pool;
 
 public class BasePool {
     public boolean enabled = false;

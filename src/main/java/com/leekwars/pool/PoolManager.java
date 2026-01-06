@@ -1,12 +1,12 @@
 package com.leekwars.pool;
 
+import com.leekwars.pool.categories.PoolDuel;
 import com.leekwars.pool.elo.EloManager;
 import com.leekwars.pool.run.categories.PoolRunDuel;
 import com.leekwars.pool.run.fight.categories.PoolFightDuo;
 import com.leekwars.pool.scenarios.ScenarioManager;
 import com.leekwars.pool.scenarios.categories.PoolScenarioDuel;
 import com.leekwars.api.mongo.MongoDbManager;
-import com.leekwars.api.mongo.pools.scenarios.PoolDuel;
 import com.leekwars.generator.Generator;
 import com.leekwars.generator.outcome.Outcome;
 import com.leekwars.generator.scenario.Scenario;

@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.UUID;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.leekwars.api.mongo.pools.scenarios.PoolDuel;
+import com.leekwars.pool.categories.PoolDuel;
 import com.leekwars.pool.leek.Leek;
 import com.leekwars.pool.leek.LeekSnapshotAI;
 import com.leekwars.pool.run.categories.PoolRunDuel;

@@ -7,8 +7,8 @@ import org.bson.Document;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.leekwars.api.mongo.MongoDbManager;
-import com.leekwars.api.mongo.pools.scenarios.PoolDuel;
 import com.leekwars.api.utils.RequestUtils;
+import com.leekwars.pool.categories.PoolDuel;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 

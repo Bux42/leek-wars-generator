@@ -1,11 +1,11 @@
-package com.leekwars.api.mongo.pools.scenarios;
+package com.leekwars.pool.categories;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.leekwars.api.mongo.pools.BasePool;
+import com.leekwars.pool.BasePool;
 
 public class PoolDuel extends BasePool {
     public List<String> leek_ids;

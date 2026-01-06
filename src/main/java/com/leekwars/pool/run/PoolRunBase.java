@@ -1,6 +1,6 @@
 package com.leekwars.pool.run;
 
-import com.leekwars.api.mongo.pools.BasePool;
+import com.leekwars.pool.BasePool;
 
 public abstract class PoolRunBase {
     public boolean running = false;

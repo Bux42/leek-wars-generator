@@ -4,8 +4,8 @@ import java.util.List;
 import com.leekwars.pool.scenarios.ScenarioManager;
 import com.leekwars.pool.scenarios.categories.PoolScenarioDuel;
 import com.leekwars.api.mongo.MongoDbManager;
-import com.leekwars.api.mongo.pools.BasePool;
 import com.leekwars.generator.scenario.Scenario;
+import com.leekwars.pool.BasePool;
 import com.leekwars.pool.leek.PoolRunLeek;
 import com.leekwars.pool.run.PoolRunBase;
 
