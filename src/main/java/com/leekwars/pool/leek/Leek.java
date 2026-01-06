@@ -1,11 +1,9 @@
 package com.leekwars.pool.leek;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
 import com.alibaba.fastjson.JSONObject;
-import com.leekwars.api.files.FileManager;
 import com.leekwars.generator.scenario.EntityInfo;
 import com.leekwars.pool.builds.EntityBuild;
 import com.leekwars.pool.entity.Entity;
@@ -64,11 +62,8 @@ public class Leek extends Entity {
         entity.id = id;
         entity.name = name;
 
-        // Sanitize / Reconstruct the AI file path
-        String sanitizedAiFilePath = FileManager.sanitizeAbsoluteFilePath(aiFilePath);
-        // Convert to relative path because the generator uses relative paths
-        String relativeAiFilePath = FileManager.absolutePathToRelative(sanitizedAiFilePath);
-        entity.ai = relativeAiFilePath;
+        String relativeAiFilePath = LeekManager.GetSanitizedRelativeAiFilePath(aiFilePath);
+        entity.ai = relativeAiFilePath; 
 
         entity.farmer = farmer_id;
         entity.team = team_id;

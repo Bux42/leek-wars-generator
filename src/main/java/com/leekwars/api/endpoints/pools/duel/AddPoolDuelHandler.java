@@ -1,0 +1,73 @@
+package com.leekwars.api.endpoints.pools.duel;
+
+import java.io.IOException;
+
+import org.bson.Document;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.leekwars.api.mongo.MongoDbManager;
+import com.leekwars.api.mongo.pools.scenarios.PoolDuel;
+import com.leekwars.api.utils.RequestUtils;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
+
+public class AddPoolDuelHandler implements HttpHandler {
+    private final MongoDbManager mongoDbManager;
+
+    public AddPoolDuelHandler(MongoDbManager mongoDbManager) {
+        this.mongoDbManager = mongoDbManager;
+    }
+
+    @Override
+    public void handle(HttpExchange exchange) throws IOException {
+        if (!"POST".equals(exchange.getRequestMethod())) {
+            RequestUtils.sendResponse(exchange, 405, "Method not allowed");
+            return;
+        }
+        try {
+            JSONObject json = RequestUtils.readRequestBody(exchange);
+            // Check if MongoDB is connected
+            if (mongoDbManager == null || !mongoDbManager.isConnected()) {
+                RequestUtils.sendResponse(exchange, 503, "Database not available");
+                return;
+            }
+
+            String name = json.getString("name");
+
+            if (name == null || name.isEmpty()) {
+                RequestUtils.sendResponse(exchange, 400, "Missing required fields: leek_ids (non-empty array), name");
+                return;
+            }
+
+            // Deserialize JSON into PoolDuel object
+            PoolDuel pool = PoolDuel.fromJson(json);
+
+            // Convert to MongoDB Document
+            String poolJson = JSON.toJSONString(pool);
+            Document poolData = Document.parse(poolJson);
+
+            // Add pool to database
+            String poolId = mongoDbManager.addPoolDuel(poolData);
+            System.out.println(poolData);
+
+            if (poolId != null) {
+                pool.id = poolId;
+
+                JSONObject response = new JSONObject();
+                response.put("success", true);
+                response.put("pool", pool);
+
+                System.out.println("Successfully added Duel pool: " + pool.name + " with ID: " + poolId);
+                RequestUtils.sendJsonResponse(exchange, 201, response);
+            } else {
+                RequestUtils.sendResponse(exchange, 500, "Failed to add Duel pool to database");
+            }
+
+        } catch (Exception e) {
+            System.err.println("Error in AddPoolDuelHandler: " + e.getMessage());
+            e.printStackTrace();
+            RequestUtils.sendResponse(exchange, 500, "Internal server error: " + e.getMessage());
+        }
+    }
+}

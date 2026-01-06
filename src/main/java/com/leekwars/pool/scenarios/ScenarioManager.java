@@ -10,36 +10,39 @@ import com.leekwars.generator.scenario.TeamInfo;
 import com.leekwars.pool.leek.Leek;
 
 public class ScenarioManager {
-    public static Scenario Create1v1Scenario(int customSeed, Leek leek1, Leek leek2) {
+    public static FarmerInfo CreateFarmerInfo(int id, String name, String country) {
+        FarmerInfo farmer = new FarmerInfo();
+        farmer.id = id;
+        farmer.name = name;
+        farmer.country = country;
+        return farmer;
+    }
+
+    public static TeamInfo CreateTeamInfo(int id, String name) {
+        TeamInfo team = new TeamInfo();
+        team.id = id;
+        team.name = name;
+        return team;
+    }
+
+    public static Scenario CreateDuelScenario(int customSeed, Leek leek1, Leek leek2) {
         Scenario scenario = new Scenario();
 
-        FarmerInfo farmer1 = new FarmerInfo();
-        farmer1.id = 1;
-        farmer1.name = "None";
-        farmer1.country = "fr";
-
-        FarmerInfo farmer2 = new FarmerInfo();
-        farmer2.id = 2;
-        farmer2.name = "None";
-        farmer2.country = "fr";
-
-        int team1_id = 1;
-        int team2_id = 2;
+        FarmerInfo farmer1 = CreateFarmerInfo(1, "None", "fr");
+        FarmerInfo farmer2 = CreateFarmerInfo(2, "None", "fr");
 
         scenario.farmers.put(farmer1.id, farmer1);
         scenario.farmers.put(farmer2.id, farmer2);
 
+        int team1_id = 1;
+        int team2_id = 2;
+
         EntityInfo entity1 = leek1.ToEntityInfo(1, farmer1.id, team1_id);
         EntityInfo entity2 = leek2.ToEntityInfo(2, farmer2.id, team2_id);
 
-        TeamInfo team1 = new TeamInfo();
-        team1.id = 1;
-        team1.name = "None";
-
-        TeamInfo team2 = new TeamInfo();
-        team2.id = 2;
-        team2.name = "None";
-
+        TeamInfo team1 = CreateTeamInfo(team1_id, "None");
+        TeamInfo team2 = CreateTeamInfo(team2_id, "None");
+        
         scenario.teams.put(team1.id, team1);
         scenario.teams.put(team2.id, team2);
 

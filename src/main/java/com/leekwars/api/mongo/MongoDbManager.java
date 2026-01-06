@@ -10,10 +10,17 @@ import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import org.bson.Document;
 import org.bson.conversions.Bson;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.leekwars.api.mongo.scenarios.PoolOneVersusOne;
+import com.leekwars.api.mongo.pools.scenarios.PoolDuel;
+import com.leekwars.pool.leek.Leek;
+import com.leekwars.pool.leek.LeekSnapshotAI;
+import com.leekwars.pool.run.categories.PoolRunDuel;
+import com.leekwars.pool.run.fight.PoolFightBase;
 
 public class MongoDbManager {
     private MongoClient mongoClient;
@@ -23,7 +30,9 @@ public class MongoDbManager {
 
     /**
      * Constructor with connection string
-     * @param connectionString MongoDB connection string (e.g., "mongodb://localhost:27017")
+     * 
+     * @param connectionString
+     *            MongoDB connection string (e.g., "mongodb://localhost:27017")
      */
     public MongoDbManager(String connectionString) {
         this.connectionString = connectionString;
@@ -38,7 +47,9 @@ public class MongoDbManager {
 
     /**
      * Connect to MongoDB database
-     * @param databaseName Name of the database to connect to
+     * 
+     * @param databaseName
+     *            Name of the database to connect to
      * @return true if connection successful, false otherwise
      */
     public boolean connect(String databaseName) {
@@ -46,10 +57,10 @@ public class MongoDbManager {
             System.out.println("Connecting to MongoDB at: " + connectionString);
             mongoClient = MongoClients.create(connectionString);
             database = mongoClient.getDatabase(databaseName);
-            
+
             // Test the connection by running a ping command
             database.runCommand(new Document("ping", 1));
-            
+
             isConnected = true;
             System.out.println("Successfully connected to MongoDB database: " + databaseName);
             return true;
@@ -63,7 +74,9 @@ public class MongoDbManager {
 
     /**
      * Get a collection from the database
-     * @param collectionName Name of the collection
+     * 
+     * @param collectionName
+     *            Name of the collection
      * @return MongoCollection or null if not connected
      */
     public MongoCollection<Document> getCollection(String collectionName) {
@@ -87,6 +100,7 @@ public class MongoDbManager {
 
     /**
      * Check if connected to MongoDB
+     * 
      * @return true if connected, false otherwise
      */
     public boolean isConnected() {
@@ -95,6 +109,7 @@ public class MongoDbManager {
 
     /**
      * Get the database instance
+     * 
      * @return MongoDatabase or null if not connected
      */
     public MongoDatabase getDatabase() {
@@ -103,15 +118,18 @@ public class MongoDbManager {
 
     /**
      * Get the connection string
+     * 
      * @return connection string
      */
     public String getConnectionString() {
         return connectionString;
     }
-    
+
     /**
      * Add a new leek to the leeks collection
-     * @param leekData Document containing leek data (without id)
+     * 
+     * @param leekData
+     *            Document containing leek data (without id)
      * @return The generated unique ID for the leek, or null if failed
      */
     public String addLeek(Document leekData) {
@@ -119,18 +137,18 @@ public class MongoDbManager {
             System.err.println("Not connected to MongoDB database");
             return null;
         }
-        
+
         try {
             // Generate a unique ID
             String uniqueId = UUID.randomUUID().toString();
-            
+
             // Add the ID to the document
             leekData.append("id", uniqueId);
-            
+
             // Insert into the leeks collection
             MongoCollection<Document> leeksCollection = database.getCollection("leeks");
             leeksCollection.insertOne(leekData);
-            
+
             System.out.println("Successfully added leek with ID: " + uniqueId);
             return uniqueId;
         } catch (Exception e) {
@@ -139,11 +157,14 @@ public class MongoDbManager {
             return null;
         }
     }
-    
+
     /**
      * Update a leek document by its ID
-     * @param leekId The unique ID of the leek to update
-     * @param updates Document containing the fields to update
+     * 
+     * @param leekId
+     *            The unique ID of the leek to update
+     * @param updates
+     *            Document containing the fields to update
      * @return true if update was successful, false otherwise
      */
     public boolean updateLeek(String leekId, Document updates) {
@@ -151,19 +172,19 @@ public class MongoDbManager {
             System.err.println("Not connected to MongoDB database");
             return false;
         }
-        
+
         try {
             MongoCollection<Document> leeksCollection = database.getCollection("leeks");
-            
+
             // Create filter to find the leek by ID
             Bson filter = Filters.eq("id", leekId);
-            
+
             // Create update document
             Bson updateOperation = new Document("$set", updates);
-            
+
             // Perform the update
             UpdateResult result = leeksCollection.updateOne(filter, updateOperation);
-            
+
             if (result.getMatchedCount() > 0) {
                 System.out.println("Successfully updated leek with ID: " + leekId);
                 return true;
@@ -177,10 +198,12 @@ public class MongoDbManager {
             return false;
         }
     }
-    
+
     /**
      * Delete a leek document by its ID
-     * @param leekId The unique ID of the leek to delete
+     * 
+     * @param leekId
+     *            The unique ID of the leek to delete
      * @return true if deletion was successful, false otherwise
      */
     public boolean deleteLeek(String leekId) {
@@ -188,16 +211,16 @@ public class MongoDbManager {
             System.err.println("Not connected to MongoDB database");
             return false;
         }
-        
+
         try {
             MongoCollection<Document> leeksCollection = database.getCollection("leeks");
-            
+
             // Create filter to find the leek by ID
             Bson filter = Filters.eq("id", leekId);
-            
+
             // Perform the deletion
             DeleteResult result = leeksCollection.deleteOne(filter);
-            
+
             if (result.getDeletedCount() > 0) {
                 System.out.println("Successfully deleted leek with ID: " + leekId);
                 return true;
@@ -211,128 +234,187 @@ public class MongoDbManager {
             return false;
         }
     }
-    
+
     // ========== POOL ONE VS ONE METHODS ==========
-    
+
     /**
-     * Add a new 1v1 pool to the pools collection
-     * @param poolData Document containing pool data (without id)
+     * Add a new Duel pool to the pools collection
+     * 
+     * @param poolData
+     *            Document containing pool data (without id)
      * @return The generated unique ID for the pool, or null if failed
      */
-    public String addPool1v1(Document poolData) {
+    public String addPoolDuel(Document poolData) {
         if (!isConnected || database == null) {
             System.err.println("Not connected to MongoDB database");
             return null;
         }
-        
+
         try {
             // Generate a unique ID if not present
             if (!poolData.containsKey("id")) {
                 String uniqueId = UUID.randomUUID().toString();
                 poolData.append("id", uniqueId);
             }
-            
+
             // Insert into the pools collection
-            MongoCollection<Document> poolsCollection = database.getCollection("pools_1v1");
+            MongoCollection<Document> poolsCollection = database.getCollection("pools_duel");
             poolsCollection.insertOne(poolData);
-            
-            System.out.println("Successfully added 1v1 pool with ID: " + poolData.getString("id"));
             return poolData.getString("id");
         } catch (Exception e) {
-            System.err.println("Failed to add 1v1 pool: " + e.getMessage());
+            System.err.println("Failed to add Duel pool: " + e.getMessage());
             e.printStackTrace();
             return null;
         }
     }
-    
+
     /**
-     * Get all 1v1 pools from the pools collection
+     * Get all duel pools as an array of PoolDuel objects
+     * 
+     * @return List of PoolDuel objects, or empty list if none found
+     */
+    public List<PoolDuel> getAllPoolDuels() {
+        List<PoolDuel> pools = new ArrayList<>();
+        if (!isConnected || database == null) {
+            System.err.println("Not connected to MongoDB database");
+            return pools;
+        }
+
+        try {
+            MongoCollection<Document> poolsCollection = database.getCollection("pools_duel");
+            for (Document doc : poolsCollection.find()) {
+                // Convert Document to PoolDuel object
+                String docJson = doc.toJson();
+                JSONObject jsonObject = JSON.parseObject(docJson);
+                jsonObject.remove("_id"); // Remove MongoDB's _id field
+                PoolDuel pool = PoolDuel.fromJson(jsonObject);
+                pools.add(pool);
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to get all Duel pools: " + e.getMessage());
+        }
+
+        return pools;
+    }
+
+    /**
+     * Get a Duel pool by its ID
+     * 
+     * @return Document containing pool data, or null if not found
+     */
+
+    public Document getPoolDuelById(String poolId) {
+        if (!isConnected || database == null) {
+            System.err.println("Not connected to MongoDB database");
+            return null;
+        }
+
+        try {
+            MongoCollection<Document> poolsCollection = database.getCollection("pools_duel");
+            Bson filter = Filters.eq("id", poolId);
+            return poolsCollection.find(filter).first();
+        } catch (Exception e) {
+            System.err.println("Failed to get Duel pool by ID: " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Get all Duel pools from the pools collection
+     * 
      * @return MongoCollection cursor for iteration, or null if failed
      */
-    public MongoCollection<Document> getPool1v1Collection() {
+    public MongoCollection<Document> getPoolDuelCollection() {
         if (!isConnected || database == null) {
             System.err.println("Not connected to MongoDB database");
             return null;
         }
-        
-        return database.getCollection("pools_1v1");
+
+        return database.getCollection("pools_duel");
     }
-    
+
     /**
-     * Update a 1v1 pool document by its ID
-     * @param poolId The unique ID of the pool to update
-     * @param updates Document containing the fields to update
+     * Update a duel pool document by its ID
+     * 
+     * @param poolId
+     *            The unique ID of the pool to update
+     * @param updates
+     *            Document containing the fields to update
      * @return true if update was successful, false otherwise
      */
-    public boolean updatePool1v1(String poolId, Document updates) {
+    public boolean updatePoolDuel(String poolId, Document updates) {
         if (!isConnected || database == null) {
             System.err.println("Not connected to MongoDB database");
             return false;
         }
-        
+
         try {
-            MongoCollection<Document> poolsCollection = database.getCollection("pools_1v1");
-            
+            MongoCollection<Document> poolsCollection = database.getCollection("pools_duel");
+
             // Create filter to find the pool by ID
             Bson filter = Filters.eq("id", poolId);
-            
+
             // Create update document
             Bson updateOperation = new Document("$set", updates);
-            
+
             // Perform the update
             UpdateResult result = poolsCollection.updateOne(filter, updateOperation);
-            
+
             if (result.getMatchedCount() > 0) {
-                System.out.println("Successfully updated 1v1 pool with ID: " + poolId);
+                System.out.println("Successfully updated duel pool with ID: " + poolId);
                 return true;
             } else {
-                System.err.println("No 1v1 pool found with ID: " + poolId);
+                System.err.println("No duel pool found with ID: " + poolId);
                 return false;
             }
         } catch (Exception e) {
-            System.err.println("Failed to update 1v1 pool: " + e.getMessage());
+            System.err.println("Failed to update duel pool: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
     }
-    
+
     /**
-     * Delete a 1v1 pool document by its ID
-     * @param poolId The unique ID of the pool to delete
+     * Delete a duel pool document by its ID
+     * 
+     * @param poolId
+     *            The unique ID of the pool to delete
      * @return true if deletion was successful, false otherwise
      */
-    public boolean deletePool1v1(String poolId) {
+    public boolean deletePoolDuel(String poolId) {
         if (!isConnected || database == null) {
             System.err.println("Not connected to MongoDB database");
             return false;
         }
-        
+
         try {
-            MongoCollection<Document> poolsCollection = database.getCollection("pools_1v1");
-            
+            MongoCollection<Document> poolsCollection = database.getCollection("pools_duel");
+
             // Create filter to find the pool by ID
             Bson filter = Filters.eq("id", poolId);
-            
+
             // Perform the deletion
             DeleteResult result = poolsCollection.deleteOne(filter);
-            
+
             if (result.getDeletedCount() > 0) {
-                System.out.println("Successfully deleted 1v1 pool with ID: " + poolId);
+                System.out.println("Successfully deleted duel pool with ID: " + poolId);
                 return true;
             } else {
-                System.err.println("No 1v1 pool found with ID: " + poolId);
+                System.err.println("No duel pool found with ID: " + poolId);
                 return false;
             }
         } catch (Exception e) {
-            System.err.println("Failed to delete 1v1 pool: " + e.getMessage());
+            System.err.println("Failed to delete duel pool: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
     }
-    
+
     /**
      * Clear stats for a 1v1 pool (reset total fights to 0)
-     * @param poolId The unique ID of the pool to clear stats for
+     * 
+     * @param poolId
+     *            The unique ID of the pool to clear stats for
      * @return true if stats were cleared successfully, false otherwise
      */
     public boolean clearPool1v1Stats(String poolId) {
@@ -340,21 +422,21 @@ public class MongoDbManager {
             System.err.println("Not connected to MongoDB database");
             return false;
         }
-        
+
         try {
-            MongoCollection<Document> poolsCollection = database.getCollection("pools_1v1");
-            
+            MongoCollection<Document> poolsCollection = database.getCollection("pools_duel");
+
             // Create filter to find the pool by ID
             Bson filter = Filters.eq("id", poolId);
-            
+
             // Create update to reset stats
             Document resetStats = new Document("total_fights", 0);
-            
+
             Bson updateOperation = new Document("$set", resetStats);
-            
+
             // Perform the update
             UpdateResult result = poolsCollection.updateOne(filter, updateOperation);
-            
+
             if (result.getMatchedCount() > 0) {
                 System.out.println("Successfully cleared stats for 1v1 pool with ID: " + poolId);
                 return true;
@@ -368,11 +450,14 @@ public class MongoDbManager {
             return false;
         }
     }
-    
+
     /**
      * Set the enabled status for a 1v1 pool
-     * @param poolId The unique ID of the pool
-     * @param enabled The enabled status to set
+     * 
+     * @param poolId
+     *            The unique ID of the pool
+     * @param enabled
+     *            The enabled status to set
      * @return true if status was set successfully, false otherwise
      */
     public boolean setPool1v1Enabled(String poolId, boolean enabled) {
@@ -380,20 +465,20 @@ public class MongoDbManager {
             System.err.println("Not connected to MongoDB database");
             return false;
         }
-        
+
         try {
-            MongoCollection<Document> poolsCollection = database.getCollection("pools_1v1");
-            
+            MongoCollection<Document> poolsCollection = database.getCollection("pools_duel");
+
             // Create filter to find the pool by ID
             Bson filter = Filters.eq("id", poolId);
-            
+
             // Create update to set enabled status
             Document enabledUpdate = new Document("enabled", enabled);
             Bson updateOperation = new Document("$set", enabledUpdate);
-            
+
             // Perform the update
             UpdateResult result = poolsCollection.updateOne(filter, updateOperation);
-            
+
             if (result.getMatchedCount() > 0) {
                 System.out.println("Successfully set enabled=" + enabled + " for 1v1 pool with ID: " + poolId);
                 return true;
@@ -409,8 +494,42 @@ public class MongoDbManager {
     }
 
     /**
+     * Get a list of Leek objects by their IDs
+     * 
+     * @param leekIds
+     *            List of leek IDs
+     * @return List of Leeks or empty list if none found
+     */
+    public List<Leek> getLeeksByIds(List<String> leekIds) {
+        List<Leek> leeks = new ArrayList<>();
+        if (!isConnected || database == null) {
+            System.err.println("Not connected to MongoDB database");
+            return leeks;
+        }
+
+        try {
+            MongoCollection<Document> leeksCollection = database.getCollection("leeks");
+            Bson filter = Filters.in("id", leekIds);
+            for (Document doc : leeksCollection.find(filter)) {
+                // Convert Document to Leek object
+                String docJson = doc.toJson();
+                JSONObject jsonObject = JSON.parseObject(docJson);
+                jsonObject.remove("_id"); // Remove MongoDB's _id field
+                Leek leek = Leek.fromJson(jsonObject);
+                leeks.add(leek);
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to get leeks by IDs: " + e.getMessage());
+        }
+
+        return leeks;
+    }
+
+    /**
      * Get a leek document by its ID
-     * @param leekId The unique ID of the leek
+     * 
+     * @param leekId
+     *            The unique ID of the leek
      * @return Document containing leek data, or null if not found
      */
     public Document getLeekById(String leekId) {
@@ -418,7 +537,7 @@ public class MongoDbManager {
             System.err.println("Not connected to MongoDB database");
             return null;
         }
-        
+
         try {
             MongoCollection<Document> leeksCollection = database.getCollection("leeks");
             Bson filter = Filters.eq("id", leekId);
@@ -428,80 +547,88 @@ public class MongoDbManager {
             return null;
         }
     }
-    
+
     /**
      * Get a 1v1 pool by its ID
-     * @param poolId The unique ID of the pool
+     * 
+     * @param poolId
+     *            The unique ID of the pool
      * @return PoolOneVersusOne object, or null if not found
      */
-    public PoolOneVersusOne getPool1v1ById(String poolId) {
+    public PoolDuel getPoolDuel(String poolId) {
         if (!isConnected || database == null) {
             System.err.println("Not connected to MongoDB database");
             return null;
         }
-        
+
         try {
-            MongoCollection<Document> poolsCollection = database.getCollection("pools_1v1");
+            MongoCollection<Document> poolsCollection = database.getCollection("pools_duel");
             Bson filter = Filters.eq("id", poolId);
             Document doc = poolsCollection.find(filter).first();
-            
+
             if (doc != null) {
-                // Convert Document to JSON and then to PoolOneVersusOne
+                // Convert Document to JSON and then to PoolDuel
                 String docJson = doc.toJson();
                 JSONObject jsonObject = JSON.parseObject(docJson);
                 jsonObject.remove("_id"); // Remove MongoDB's _id field
-                return PoolOneVersusOne.fromJson(jsonObject);
+                return PoolDuel.fromJson(jsonObject);
             }
-            
+
             return null;
         } catch (Exception e) {
             System.err.println("Failed to get 1v1 pool by ID: " + e.getMessage());
             return null;
         }
     }
-    
+
     /**
-     * Add a leek ID to a 1v1 pool's leek_ids list
-     * @param poolId The unique ID of the pool
-     * @param leekId The leek ID to add to the pool
+     * Add a leek ID to a duel pool's leek_ids list
+     * 
+     * @param poolId
+     *            The unique ID of the pool
+     * @param leekId
+     *            The leek ID to add to the pool
      * @return true if leek was added successfully, false otherwise
      */
-    public boolean addLeekToPool1v1(String poolId, String leekId) {
+    public boolean addLeekToPoolDuel(String poolId, String leekId) {
         if (!isConnected || database == null) {
             System.err.println("Not connected to MongoDB database");
             return false;
         }
-        
+
         try {
-            MongoCollection<Document> poolsCollection = database.getCollection("pools_1v1");
-            
+            MongoCollection<Document> poolsCollection = database.getCollection("pools_duel");
+
             // Create filter to find the pool by ID
             Bson filter = Filters.eq("id", poolId);
-            
+
             // Create update to add leek ID to the array
             Bson updateOperation = Updates.addToSet("leek_ids", leekId);
-            
+
             // Perform the update
             UpdateResult result = poolsCollection.updateOne(filter, updateOperation);
-            
+
             if (result.getMatchedCount() > 0) {
-                System.out.println("Successfully added leek " + leekId + " to 1v1 pool with ID: " + poolId);
+                System.out.println("Successfully added leek " + leekId + " to duel pool with ID: " + poolId);
                 return true;
             } else {
-                System.err.println("No 1v1 pool found with ID: " + poolId);
+                System.err.println("No duel pool found with ID: " + poolId);
                 return false;
             }
         } catch (Exception e) {
-            System.err.println("Failed to add leek to 1v1 pool: " + e.getMessage());
+            System.err.println("Failed to add leek to duel pool: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
     }
-    
+
     /**
      * Enable fight count limit for a 1v1 pool and set the limit value
-     * @param poolId The unique ID of the pool
-     * @param limit The fight count limit to set
+     * 
+     * @param poolId
+     *            The unique ID of the pool
+     * @param limit
+     *            The fight count limit to set
      * @return true if limit was enabled successfully, false otherwise
      */
     public boolean enablePool1v1FightCountLimit(String poolId, int limit) {
@@ -509,23 +636,23 @@ public class MongoDbManager {
             System.err.println("Not connected to MongoDB database");
             return false;
         }
-        
+
         try {
-            MongoCollection<Document> poolsCollection = database.getCollection("pools_1v1");
-            
+            MongoCollection<Document> poolsCollection = database.getCollection("pools_duel");
+
             // Create filter to find the pool by ID
             Bson filter = Filters.eq("id", poolId);
-            
+
             // Create update to enable fight count limit and set the limit
             Document updates = new Document()
-                .append("fight_count_limit_enabled", true)
-                .append("fight_count_limit", limit);
-            
+                    .append("fight_count_limit_enabled", true)
+                    .append("fight_count_limit", limit);
+
             Bson updateOperation = new Document("$set", updates);
-            
+
             // Perform the update
             UpdateResult result = poolsCollection.updateOne(filter, updateOperation);
-            
+
             if (result.getMatchedCount() > 0) {
                 System.out.println("Successfully enabled fight count limit (" + limit + ") for 1v1 pool with ID: " + poolId);
                 return true;
@@ -539,10 +666,12 @@ public class MongoDbManager {
             return false;
         }
     }
-    
+
     /**
      * Disable fight count limit for a 1v1 pool
-     * @param poolId The unique ID of the pool
+     * 
+     * @param poolId
+     *            The unique ID of the pool
      * @return true if limit was disabled successfully, false otherwise
      */
     public boolean disablePool1v1FightCountLimit(String poolId) {
@@ -550,20 +679,20 @@ public class MongoDbManager {
             System.err.println("Not connected to MongoDB database");
             return false;
         }
-        
+
         try {
-            MongoCollection<Document> poolsCollection = database.getCollection("pools_1v1");
-            
+            MongoCollection<Document> poolsCollection = database.getCollection("pools_duel");
+
             // Create filter to find the pool by ID
             Bson filter = Filters.eq("id", poolId);
-            
+
             // Create update to disable fight count limit
             Document updates = new Document("fight_count_limit_enabled", false);
             Bson updateOperation = new Document("$set", updates);
-            
+
             // Perform the update
             UpdateResult result = poolsCollection.updateOne(filter, updateOperation);
-            
+
             if (result.getMatchedCount() > 0) {
                 System.out.println("Successfully disabled fight count limit for 1v1 pool with ID: " + poolId);
                 return true;
@@ -577,11 +706,14 @@ public class MongoDbManager {
             return false;
         }
     }
-    
+
     /**
      * Reset elo for all leeks in a 1v1 pool
-     * @param poolId The unique ID of the pool
-     * @param elo The elo value to reset all leeks to
+     * 
+     * @param poolId
+     *            The unique ID of the pool
+     * @param elo
+     *            The elo value to reset all leeks to
      * @return true if all leeks' elo were reset successfully, false otherwise
      */
     public boolean resetPool1v1LeeksElo(String poolId, int elo) {
@@ -589,24 +721,24 @@ public class MongoDbManager {
             System.err.println("Not connected to MongoDB database");
             return false;
         }
-        
+
         try {
             // Get the pool to access its leek_ids
-            PoolOneVersusOne pool = getPool1v1ById(poolId);
+            PoolDuel pool = getPoolDuel(poolId);
             if (pool == null) {
-                System.err.println("No 1v1 pool found with ID: " + poolId);
+                System.err.println("No duel pool found with ID: " + poolId);
                 return false;
             }
-            
+
             MongoCollection<Document> leeksCollection = database.getCollection("leeks");
             int updatedCount = 0;
-            
+
             // Update elo for each leek in the pool
             for (String leekId : pool.leek_ids) {
                 Bson filter = Filters.eq("id", leekId);
                 Document updates = new Document("elo", elo);
                 Bson updateOperation = new Document("$set", updates);
-                
+
                 UpdateResult result = leeksCollection.updateOne(filter, updateOperation);
                 if (result.getMatchedCount() > 0) {
                     updatedCount++;
@@ -614,13 +746,237 @@ public class MongoDbManager {
                     System.err.println("Warning: Leek with ID " + leekId + " not found");
                 }
             }
-            
+
             System.out.println("Successfully reset elo to " + elo + " for " + updatedCount + " leeks in pool " + poolId);
             return updatedCount > 0;
         } catch (Exception e) {
             System.err.println("Failed to reset leeks' elo for pool: " + e.getMessage());
             e.printStackTrace();
             return false;
+        }
+    }
+
+    /**
+     * Update a poolRun duel item in the pool_runs_duel collection
+     * @param poolRunDuel
+     * @return true if update was successful, false otherwise
+     */
+    public boolean updatePoolRunDuel(PoolRunDuel poolRunDuel) {
+        if (!isConnected || database == null) {
+            System.err.println("Not connected to MongoDB database");
+            return false;
+        }
+
+        try {
+            MongoCollection<Document> poolRunsCollection = database.getCollection("pool_runs_duel");
+
+            // Create filter to find the pool run by ID
+            Bson filter = Filters.eq("id", poolRunDuel.id);
+
+            // Convert PoolRunDuel to Document
+            String jsonString = JSON.toJSONString(poolRunDuel);
+            JSONObject jsonObject = JSON.parseObject(jsonString);
+            Document doc = Document.parse(jsonObject.toJSONString());
+
+            // Create update document
+            Bson updateOperation = new Document("$set", doc);
+
+            // Perform the update
+            UpdateResult result = poolRunsCollection.updateOne(filter, updateOperation);
+
+            if (result.getMatchedCount() > 0) {
+                System.out.println("Successfully updated PoolRunDuel with ID: " + poolRunDuel.id);
+                return true;
+            } else {
+                System.err.println("No PoolRunDuel found with ID: " + poolRunDuel.id);
+                return false;
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to update PoolRunDuel: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Create a new poolRun duel item in the pool_runs_duel collection
+     * 
+     * @param PoolRunDuel
+     *            poolRunDuel The PoolRunDuel object to store
+     * @return The ID of the created PoolRunDuel if successful, null otherwise
+     */
+    public String createPoolRunDuel(PoolRunDuel poolRunDuel) {
+        if (!isConnected || database == null) {
+            System.err.println("Not connected to MongoDB database");
+            return null;
+        }
+
+        try {
+            MongoCollection<Document> poolRunsCollection = database.getCollection("pool_runs_duel");
+
+            // Generate a unique ID
+            String uniqueId = UUID.randomUUID().toString();
+            poolRunDuel.id = uniqueId;
+
+            // Convert PoolRunDuel to Document
+            String jsonString = JSON.toJSONString(poolRunDuel);
+            JSONObject jsonObject = JSON.parseObject(jsonString);
+            Document doc = Document.parse(jsonObject.toJSONString());
+
+            // Insert into the pool_runs_duel collection
+            poolRunsCollection.insertOne(doc);
+
+            System.out.println("Successfully created PoolRunDuel with ID: " + poolRunDuel.id);
+            return poolRunDuel.id;
+        } catch (Exception e) {
+            System.err.println("Failed to create PoolRunDuel: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * Add a fight duo item to  in the pool_fights_duel collection
+     * 
+     * @param fightData The PoolFightDuo object to add
+     */
+    public void addFightItem(Object fightData) {
+        if (!isConnected || database == null) {
+            System.err.println("Not connected to MongoDB database");
+            return;
+        }
+
+        try {
+            MongoCollection<Document> poolFightsCollection = database.getCollection("pool_fights");
+
+            // Generate a unique ID
+            String uniqueId = UUID.randomUUID().toString();
+            ((PoolFightBase) fightData).id = uniqueId;
+
+            // Convert PoolFightDuo to Document
+            String jsonString = JSON.toJSONString(fightData);
+            JSONObject jsonObject = JSON.parseObject(jsonString);
+            Document doc = Document.parse(jsonObject.toJSONString());
+
+            // Insert into the pool_fights_duel collection
+            poolFightsCollection.insertOne(doc);
+
+            // System.out.println("Successfully added fight to PoolRunDuel with ID: " + fightData.id);
+        } catch (Exception e) {
+            System.err.println("Failed to add fight to PoolRunDuel: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Update the elo of leeks within a poolRun duel item in the pool_runs_duel collection
+     * First, get the PoolRunDuel by its ID, then find the leeks within the leeks array and update their elo values.
+     * 
+     * @param poolRunDuelId The ID of the PoolRunDuel to update
+     * @param leek1 The first Leek object
+     * @param leek1Elo The new elo for the first leek
+     * @param leek2 The second Leek object
+     * @param leek2Elo The new elo for the second leek
+     */
+    public void updateFightDuoLeeksElo(String poolRunDuelId, Leek leek1, int leek1Elo, Leek leek2, int leek2Elo) {
+        if (!isConnected || database == null) {
+            System.err.println("Not connected to MongoDB database");
+            return;
+        }
+
+        try {
+            MongoCollection<Document> poolRunsCollection = database.getCollection("pool_runs_duel");
+            // Create filter to find the pool run by ID
+            Bson filter = Filters.eq("id", poolRunDuelId);
+            Document poolRunDoc = poolRunsCollection.find(filter).first();
+            if (poolRunDoc == null) {
+                System.err.println("No PoolRunDuel found with ID: " + poolRunDuelId);
+                return;
+            }
+            List<Document> leeks = (List<Document>) poolRunDoc.get("leeks");
+            for (Document leekDoc : leeks) {
+                String leekId = leekDoc.getString("id");
+                if (leekId.equals(leek1.id)) {
+                    leekDoc.put("elo", leek1Elo);
+                } else if (leekId.equals(leek2.id)) {
+                    leekDoc.put("elo", leek2Elo);
+                }
+            }
+            // Update the leeks array in the document
+            Bson updateOperation = new Document("$set", new Document("leeks", leeks));
+            UpdateResult result = poolRunsCollection.updateOne(filter, updateOperation);
+            if (result.getMatchedCount() > 0) {
+                // System.out.println("Successfully updated leeks' elo in PoolRunDuel with ID: " + poolRunDuelId);
+            } else {
+                System.err.println("No PoolRunDuel found with ID: " + poolRunDuelId);
+            }
+
+        } catch (Exception e) {
+            System.err.println("Failed to update leeks' elo: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+    }
+
+    /**
+     * Adds a LeekSnapshotAI document to the leek_snapshots_ai collection
+     * @param snapshot The LeekSnapshotAI object to add
+     * @return The ID of the created snapshot if successful, null otherwise
+     */
+    public String addLeekSnapshotAI(LeekSnapshotAI snapshot) {
+        if (!isConnected || database == null) {
+            System.err.println("Not connected to MongoDB database");
+            return null;
+        }
+
+        try {
+            MongoCollection<Document> snapshotsCollection = database.getCollection("leek_snapshots_ai");
+
+            // Convert LeekSnapshotAI to Document
+            String jsonString = JSON.toJSONString(snapshot);
+            JSONObject jsonObject = JSON.parseObject(jsonString);
+            Document doc = Document.parse(jsonObject.toJSONString());
+
+            // Insert into the leek_snapshots_ai collection
+            snapshotsCollection.insertOne(doc);
+
+            System.out.println("Successfully added LeekSnapshotAI with mergedAiCodeHash: " + snapshot.mergedAiCodeHash);
+            return snapshot.mergedAiCodeHash;
+        } catch (Exception e) {
+            System.err.println("Failed to add LeekSnapshotAI: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * Gets a LeekSnapshotAI document from the leek_snapshots_ai collection
+     * @param mergedAiCodeHash The merged AI code hash to search for
+     * @return The LeekSnapshotAI object if found, null otherwise
+     */
+    public LeekSnapshotAI getLeekSnapshotAI(String mergedAiCodeHash) {
+        if (!isConnected || database == null) {
+            System.err.println("Not connected to MongoDB database");
+            return null;
+        }
+
+        try {
+            MongoCollection<Document> snapshotsCollection = database.getCollection("leek_snapshots_ai");
+            Bson filter = Filters.eq("mergedAiCodeHash", mergedAiCodeHash);
+            Document doc = snapshotsCollection.find(filter).first();
+
+            if (doc != null) {
+                // Convert Document to LeekSnapshotAI object
+                String docJson = doc.toJson();
+                JSONObject jsonObject = JSON.parseObject(docJson);
+                jsonObject.remove("_id"); // Remove MongoDB's _id field
+                return LeekSnapshotAI.fromJson(jsonObject);
+            }
+
+            return null;
+        } catch (Exception e) {
+            System.err.println("Failed to get LeekSnapshotAI by mergedAiCodeHash: " + e.getMessage());
+            return null;
         }
     }
 }

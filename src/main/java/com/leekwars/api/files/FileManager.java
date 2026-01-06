@@ -415,6 +415,22 @@ public class FileManager {
     }
 
     /**
+     * Get a file directory relative path from a file absolute path
+     * @param absolutePath
+     * @return directory relative path
+     */
+    public static String GetSanitizedRelativeAiFilePath(String absolutePath) {
+
+        // get directory path only
+        Path path = Paths.get(absolutePath);
+        absolutePath = path.getParent() != null ? path.getParent().toString() : "";
+
+        // convert to sanitized relative path
+        absolutePath = FileManager.absolutePathToRelative(absolutePath);
+        return absolutePath;
+    }
+
+    /**
      * Convert an absolute path to a relative path from the relative root
      */
     public static String absolutePathToRelative(String absolutePath) {
