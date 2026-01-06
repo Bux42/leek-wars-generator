@@ -2,7 +2,6 @@ package com.leekwars.api.endpoints.pools.duel;
 
 import java.io.IOException;
 
-
 import com.alibaba.fastjson.JSONObject;
 import com.leekwars.api.mongo.MongoDbManager;
 import com.leekwars.api.utils.RequestUtils;
@@ -24,11 +23,6 @@ public class AddLeekToPoolDuelHandler implements HttpHandler {
         }
         try {
             JSONObject json = RequestUtils.readRequestBody(exchange);
-            // Check if MongoDB is connected
-            if (mongoDbManager == null || !mongoDbManager.isConnected()) {
-                RequestUtils.sendResponse(exchange, 503, "Database not available");
-                return;
-            }
 
             String poolId = json.getString("pool_id");
             String leekId = json.getString("leek_id");

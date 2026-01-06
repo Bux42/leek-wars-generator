@@ -1,4 +1,4 @@
-package com.leekwars.api.logging;
+package com.leekwars.api.middleware;
 
 import java.io.IOException;
 

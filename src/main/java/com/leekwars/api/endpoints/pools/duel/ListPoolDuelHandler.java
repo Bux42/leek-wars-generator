@@ -27,12 +27,6 @@ public class ListPoolDuelHandler implements HttpHandler {
             return;
         }
         try {
-            // Check if MongoDB is connected
-            if (mongoDbManager == null || !mongoDbManager.isConnected()) {
-                RequestUtils.sendResponse(exchange, 503, "Database not available");
-                return;
-            }
-
             MongoCollection<Document> poolDuelCollection = mongoDbManager.getPoolDuelCollection();
             if (poolDuelCollection == null) {
                 RequestUtils.sendResponse(exchange, 500, "Failed to get pool duel collection");

@@ -24,12 +24,6 @@ public class GetPoolDuelHandler implements HttpHandler {
             return;
         }
         try {
-            // Check if MongoDB is connected
-            if (mongoDbManager == null || !mongoDbManager.isConnected()) {
-                RequestUtils.sendResponse(exchange, 503, "Database not available");
-                return;
-            }
-
             JSONObject json = RequestUtils.readRequestBody(exchange);
             String poolId = json.getString("id");
 

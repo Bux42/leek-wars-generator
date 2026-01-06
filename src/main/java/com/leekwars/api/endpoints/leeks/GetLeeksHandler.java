@@ -26,12 +26,6 @@ public class GetLeeksHandler implements HttpHandler {
             return;
         }
         try {
-            // Check if MongoDB is connected
-            if (mongoDbManager == null || !mongoDbManager.isConnected()) {
-                RequestUtils.sendResponse(exchange, 503, "Database not available");
-                return;
-            }
-
             // Get all leeks from the database
             var leeksCollection = mongoDbManager.getCollection("leeks");
             JSONArray leeks = new JSONArray();

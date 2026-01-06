@@ -37,12 +37,6 @@ public class StartPoolDuelHandler implements HttpHandler {
         try {
             JSONObject json = RequestUtils.readRequestBody(exchange);
 
-            // Check if MongoDB is connected
-            if (mongoDbManager == null || !mongoDbManager.isConnected()) {
-                RequestUtils.sendResponse(exchange, 503, "Database not available");
-                return;
-            }
-
             // Check if PoolManager is available
             if (poolManager == null) {
                 RequestUtils.sendResponse(exchange, 503, "PoolManager not available");
@@ -89,7 +83,8 @@ public class StartPoolDuelHandler implements HttpHandler {
             // fetch all leeks from database
             List<Leek> poolDuelLeeks = mongoDbManager.getLeeksByIds(leekIdsList);
 
-            // convert to a PoolRunLeek (snapshot build, ai, git status etc at the start of the pool)
+            // convert to a PoolRunLeek (snapshot build, ai, git status etc at the start of
+            // the pool)
             List<PoolRunLeek> poolRunLeeks = new ArrayList<>();
             for (Leek leek : poolDuelLeeks) {
                 PoolRunLeek poolRunLeek = LeekManager.CreatePoolRunLeek(leek, poolManager.generator, mongoDbManager);

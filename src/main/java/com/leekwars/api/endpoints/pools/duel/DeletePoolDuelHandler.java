@@ -28,12 +28,6 @@ public class DeletePoolDuelHandler implements HttpHandler {
             // prevent deletion if so
             // Delete all associated PoolDuelRuns first, with their fights etc
 
-            // Check if MongoDB is connected
-            if (mongoDbManager == null || !mongoDbManager.isConnected()) {
-                RequestUtils.sendResponse(exchange, 503, "Database not available");
-                return;
-            }
-
             String poolId = json.getString("id");
             if (poolId == null || poolId.isEmpty()) {
                 RequestUtils.sendResponse(exchange, 400, "Missing required field: id");
