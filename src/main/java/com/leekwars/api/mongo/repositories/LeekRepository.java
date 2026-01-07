@@ -26,6 +26,18 @@ public class LeekRepository {
         return Optional.ofNullable(doc);
     }
 
+    public Iterable<Document> findByIds(Iterable<String> ids) {
+        // Convert String IDs to ObjectIds
+        var objectIds = new java.util.ArrayList<ObjectId>();
+        for (String id : ids) {
+            objectIds.add(new ObjectId(id));
+        }
+
+        // Query for documents with _id in the list of ObjectIds
+        return leeks.find(new Document("_id", new Document("$in", objectIds)));
+        // return leeks.find(new Document("_id", new Document("$in", ids)));
+    }
+
     public void insert(Document leek) {
         leeks.insertOne(leek);
     }

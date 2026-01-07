@@ -16,12 +16,12 @@ public abstract class PoolRunBase {
         this.pool = pool;
     }
 
-    public void startPool() {
+    public void init() {
         this.running = true;
         this.startTime = System.currentTimeMillis();
     }
 
-    public void stopPool(boolean interrupted) {
+    public void stop(boolean interrupted) {
         this.running = false;
         this.endTime = System.currentTimeMillis();
         this.interrupted = interrupted;

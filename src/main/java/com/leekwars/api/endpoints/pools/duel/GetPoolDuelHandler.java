@@ -2,19 +2,18 @@ package com.leekwars.api.endpoints.pools.duel;
 
 import java.io.IOException;
 
-import org.bson.Document;
-
 import com.alibaba.fastjson.JSONObject;
-import com.leekwars.api.mongo.MongoDbManager;
+import com.leekwars.api.mongo.services.PoolDuelService;
 import com.leekwars.api.utils.RequestUtils;
+import com.leekwars.pool.categories.PoolDuel;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
 public class GetPoolDuelHandler implements HttpHandler {
-    private final MongoDbManager mongoDbManager;
+    private final PoolDuelService poolDuelService;
 
-    public GetPoolDuelHandler(MongoDbManager mongoDbManager) {
-        this.mongoDbManager = mongoDbManager;
+    public GetPoolDuelHandler(PoolDuelService poolDuelService) {
+        this.poolDuelService = poolDuelService;
     }
 
     @Override
@@ -27,15 +26,14 @@ public class GetPoolDuelHandler implements HttpHandler {
             JSONObject json = RequestUtils.readRequestBody(exchange);
             String poolId = json.getString("id");
 
-            Document poolDuelDocument = mongoDbManager.getPoolDuelById(poolId);
+            PoolDuel poolDuel = poolDuelService.getPoolDuelById(poolId);
 
-            if (poolDuelDocument == null) {
+            if (poolDuel == null) {
                 RequestUtils.sendResponse(exchange, 404, "Pool not found");
                 return;
             }
 
-            JSONObject response = JSONObject.parseObject(poolDuelDocument.toJson());
-            response.remove("_id");
+            JSONObject response = poolDuel.toJson();
             RequestUtils.sendJsonResponse(exchange, 200, response);
         } catch (Exception e) {
             System.err.println("Error in ListPool1v1Handler: " + e.getMessage());

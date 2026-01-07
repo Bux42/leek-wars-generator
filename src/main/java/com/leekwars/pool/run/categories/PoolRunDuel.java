@@ -3,19 +3,21 @@ package com.leekwars.pool.run.categories;
 import java.util.List;
 import com.leekwars.pool.scenarios.ScenarioManager;
 import com.leekwars.pool.scenarios.categories.PoolScenarioDuel;
-import com.leekwars.api.mongo.MongoDbManager;
 import com.leekwars.generator.scenario.Scenario;
 import com.leekwars.pool.BasePool;
 import com.leekwars.pool.leek.PoolRunLeek;
 import com.leekwars.pool.run.PoolRunBase;
 
 public class PoolRunDuel extends PoolRunBase {
-    public PoolRunDuel(BasePool base) {
-        super(base);
-    }
-
     // store a snapshot of leeks at the start of the pool
-    public List<PoolRunLeek> leeks = new java.util.ArrayList<>();
+    public List<PoolRunLeek> leeks;
+
+    public PoolRunDuel(BasePool base, List<PoolRunLeek> leeks) {
+        super(base);
+        super.init();
+
+        SetLeeks(leeks);
+    }
 
     public void SetLeeks(List<PoolRunLeek> leeks) {
         this.leeks = leeks;
@@ -32,22 +34,17 @@ public class PoolRunDuel extends PoolRunBase {
         }
     }
 
-    public boolean start(MongoDbManager mongoDbManager) {
-        super.startPool();
-        String id = mongoDbManager.createPoolRunDuel(this);
-
-        if (id != null) {
-            this.setRunId(id);
-            return true;
-        } else {
-            System.err.println("Failed to create PoolRunDuel in MongoDB");
-            return false;
-        }
+    public void stop(boolean interrupted) {
+        super.stop(interrupted);
     }
 
-    public void stop(MongoDbManager mongoDbManager, boolean interrupted) {
-        super.stopPool(interrupted);
-        mongoDbManager.updatePoolRunDuel(this);
+    public PoolRunLeek getLeekById(String leekId) {
+        for (PoolRunLeek leek : leeks) {
+            if (leek.id.equals(leekId)) {
+                return leek;
+            }
+        }
+        return null;
     }
 
     public List<PoolScenarioDuel> generateAllScenarios() {
@@ -69,4 +66,5 @@ public class PoolRunDuel extends PoolRunBase {
 
         return scenarios;
     }
+
 }

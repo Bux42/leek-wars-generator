@@ -11,18 +11,18 @@ import com.leekwars.pool.leek.Leek;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
-public class AddLeekToPoolDuelHandler implements HttpHandler {
+public class RemoveLeekFromPoolDuelHandler implements HttpHandler {
     private final PoolDuelService poolDuelService;
     private final LeekService leekService;
 
-    public AddLeekToPoolDuelHandler(PoolDuelService poolDuelService, LeekService leekService) {
+    public RemoveLeekFromPoolDuelHandler(PoolDuelService poolDuelService, LeekService leekService) {
         this.poolDuelService = poolDuelService;
         this.leekService = leekService;
     }
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-        if (!"POST".equals(exchange.getRequestMethod())) {
+        if (!"DELETE".equals(exchange.getRequestMethod())) {
             RequestUtils.sendResponse(exchange, 405, "Method not allowed");
             return;
         }
@@ -36,7 +36,7 @@ public class AddLeekToPoolDuelHandler implements HttpHandler {
                 RequestUtils.sendResponse(exchange, 400, "Missing required field: poolId");
                 return;
             }
-            
+
             PoolDuel pool = poolDuelService.getPoolDuelById(poolId);
             if (pool == null) {
                 RequestUtils.sendResponse(exchange, 404, "Pool not found");
@@ -48,32 +48,25 @@ public class AddLeekToPoolDuelHandler implements HttpHandler {
                 return;
             }
 
-            if (pool.leekIds.contains(leekId)) {
-                RequestUtils.sendResponse(exchange, 409, "Leek already in pool");
+            if (!pool.leekIds.contains(leekId)) {
+                RequestUtils.sendResponse(exchange, 404, "Leek not found in pool");
                 return;
             }
 
-            Leek leek = leekService.getLeekById(leekId);
-            if (leek == null) {
-                RequestUtils.sendResponse(exchange, 404, "Leek not found");
-                return;
-            }
-
-
-            // Add leek to pool
-            boolean success = poolDuelService.addLeekIdToPoolDuel(poolId, leekId);
+            // Remove leek from pool
+            boolean success = poolDuelService.removeLeekIdFromPoolDuel(poolId, leekId);
 
             if (success) {
                 JSONObject response = new JSONObject();
                 response.put("success", true);
-                response.put("message", "Leek added to pool successfully");
+                response.put("message", "Leek removed from pool successfully");
                 RequestUtils.sendJsonResponse(exchange, 200, response);
             } else {
-                RequestUtils.sendResponse(exchange, 404, "Pool or not found");
+                RequestUtils.sendResponse(exchange, 404, "Pool not found");
             }
 
         } catch (Exception e) {
-            System.err.println("Error in AddLeekToPool1v1Handler: " + e.getMessage());
+            System.err.println("Error in RemoveLeekFromPoolDuelHandler: " + e.getMessage());
             e.printStackTrace();
             RequestUtils.sendResponse(exchange, 500, "Internal server error: " + e.getMessage());
         }

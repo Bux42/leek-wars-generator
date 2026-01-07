@@ -3,16 +3,16 @@ package com.leekwars.api.endpoints.pools.duel;
 import java.io.IOException;
 
 import com.alibaba.fastjson.JSONObject;
-import com.leekwars.api.mongo.MongoDbManager;
+import com.leekwars.api.mongo.services.PoolDuelService;
 import com.leekwars.api.utils.RequestUtils;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
 public class DeletePoolDuelHandler implements HttpHandler {
-    private final MongoDbManager mongoDbManager;
+    private final PoolDuelService poolDuelService;
 
-    public DeletePoolDuelHandler(MongoDbManager mongoDbManager) {
-        this.mongoDbManager = mongoDbManager;
+    public DeletePoolDuelHandler(PoolDuelService poolDuelService) {
+        this.poolDuelService = poolDuelService;
     }
 
     @Override
@@ -35,7 +35,7 @@ public class DeletePoolDuelHandler implements HttpHandler {
             }
 
             // Delete pool from database
-            boolean success = mongoDbManager.deletePoolDuel(poolId);
+            boolean success = poolDuelService.deletePoolDuel(poolId);
 
             if (success) {
                 JSONObject response = new JSONObject();

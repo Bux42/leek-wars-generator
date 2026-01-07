@@ -3,18 +3,15 @@ package com.leekwars.api.endpoints.pools.duel;
 import java.io.IOException;
 
 import com.alibaba.fastjson.JSONObject;
-import com.leekwars.api.mongo.MongoDbManager;
 import com.leekwars.api.utils.RequestUtils;
 import com.leekwars.pool.PoolManager;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
 public class StopPoolDuelHandler implements HttpHandler {
-    private final MongoDbManager mongoDbManager;
     private final PoolManager poolManager;
 
-    public StopPoolDuelHandler(MongoDbManager mongoDbManager, PoolManager poolManager) {
-        this.mongoDbManager = mongoDbManager;
+    public StopPoolDuelHandler(PoolManager poolManager) {
         this.poolManager = poolManager;
     }
 

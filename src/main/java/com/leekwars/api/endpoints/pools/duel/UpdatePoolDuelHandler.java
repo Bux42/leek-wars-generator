@@ -2,19 +2,18 @@ package com.leekwars.api.endpoints.pools.duel;
 
 import java.io.IOException;
 
-import org.bson.Document;
-
 import com.alibaba.fastjson.JSONObject;
-import com.leekwars.api.mongo.MongoDbManager;
+import com.leekwars.api.mongo.services.PoolDuelService;
 import com.leekwars.api.utils.RequestUtils;
+import com.leekwars.pool.categories.PoolDuel;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
 public class UpdatePoolDuelHandler implements HttpHandler {
-    private final MongoDbManager mongoDbManager;
+    private final PoolDuelService poolDuelService;
 
-    public UpdatePoolDuelHandler(MongoDbManager mongoDbManager) {
-        this.mongoDbManager = mongoDbManager;
+    public UpdatePoolDuelHandler(PoolDuelService poolDuelService) {
+        this.poolDuelService = poolDuelService;
     }
 
     @Override
@@ -27,19 +26,21 @@ public class UpdatePoolDuelHandler implements HttpHandler {
             JSONObject json = RequestUtils.readRequestBody(exchange);
 
             String poolId = json.getString("id");
+
             if (poolId == null || poolId.isEmpty()) {
                 RequestUtils.sendResponse(exchange, 400, "Missing required field: id");
                 return;
             }
 
-            // Remove id from updates
-            json.remove("id");
+            PoolDuel poolDuel = PoolDuel.fromJson(json);
+            if (poolDuel == null) {
+                RequestUtils.sendResponse(exchange, 400, "Invalid pool data");
+                return;
+            }
 
-            // Convert to Document
-            Document updates = Document.parse(json.toJSONString());
 
             // Update pool in database
-            boolean success = mongoDbManager.updatePoolDuel(poolId, updates);
+            boolean success = poolDuelService.updatePoolDuel(poolId, poolDuel);
 
             if (success) {
                 JSONObject response = new JSONObject();

@@ -1,20 +1,20 @@
-package com.leekwars.api.endpoints.leeks;
+package com.leekwars.api.endpoints.pools.duel;
 
 import java.io.IOException;
 import java.util.List;
 
 import com.alibaba.fastjson.JSONObject;
-import com.leekwars.api.mongo.services.LeekService;
+import com.leekwars.api.mongo.services.PoolDuelService;
+import com.leekwars.api.utils.RequestUtils;
+import com.leekwars.pool.categories.PoolDuel;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-import com.leekwars.api.utils.RequestUtils;
-import com.leekwars.pool.leek.Leek;
 
-public class GetLeeksHandler implements HttpHandler {
-    private final LeekService leekService;
+public class GetAllDuelPoolsHandler implements HttpHandler {
+    private final PoolDuelService poolDuelService;
 
-    public GetLeeksHandler(LeekService leekService) {
-        this.leekService = leekService;
+    public GetAllDuelPoolsHandler(PoolDuelService poolDuelService) {
+        this.poolDuelService = poolDuelService;
     }
 
     @Override
@@ -24,17 +24,19 @@ public class GetLeeksHandler implements HttpHandler {
             return;
         }
         try {
-            List<Leek> leeks = leekService.getAllLeeks();
+            List<PoolDuel> pools = poolDuelService.getAllPoolDuels();
 
             JSONObject response = new JSONObject();
-            response.put("leeks", leeks);
+            response.put("pools", pools);
             response.put("success", true);
 
             RequestUtils.sendJsonResponse(exchange, 200, response);
+
         } catch (Exception e) {
-            System.err.println("Error in LeeksHandler: " + e.getMessage());
+            System.err.println("Error in ListPool1v1Handler: " + e.getMessage());
             e.printStackTrace();
             RequestUtils.sendResponse(exchange, 500, "Internal server error: " + e.getMessage());
         }
     }
+
 }

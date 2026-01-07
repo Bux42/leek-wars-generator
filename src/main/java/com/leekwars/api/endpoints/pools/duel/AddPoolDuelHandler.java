@@ -2,21 +2,18 @@ package com.leekwars.api.endpoints.pools.duel;
 
 import java.io.IOException;
 
-import org.bson.Document;
-
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.leekwars.api.mongo.MongoDbManager;
+import com.leekwars.api.mongo.services.PoolDuelService;
 import com.leekwars.api.utils.RequestUtils;
 import com.leekwars.pool.categories.PoolDuel;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
 public class AddPoolDuelHandler implements HttpHandler {
-    private final MongoDbManager mongoDbManager;
+    private final PoolDuelService poolDuelService;
 
-    public AddPoolDuelHandler(MongoDbManager mongoDbManager) {
-        this.mongoDbManager = mongoDbManager;
+    public AddPoolDuelHandler(PoolDuelService poolDuelService) {
+        this.poolDuelService = poolDuelService;
     }
 
     @Override
@@ -31,20 +28,15 @@ public class AddPoolDuelHandler implements HttpHandler {
             String name = json.getString("name");
 
             if (name == null || name.isEmpty()) {
-                RequestUtils.sendResponse(exchange, 400, "Missing required fields: leek_ids (non-empty array), name");
+                RequestUtils.sendResponse(exchange, 400, "Missing required fields: name");
                 return;
             }
 
             // Deserialize JSON into PoolDuel object
             PoolDuel pool = PoolDuel.fromJson(json);
 
-            // Convert to MongoDB Document
-            String poolJson = JSON.toJSONString(pool);
-            Document poolData = Document.parse(poolJson);
-
             // Add pool to database
-            String poolId = mongoDbManager.addPoolDuel(poolData);
-            System.out.println(poolData);
+            String poolId = poolDuelService.addPoolDuel(pool);
 
             if (poolId != null) {
                 pool.id = poolId;

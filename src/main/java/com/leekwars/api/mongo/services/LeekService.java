@@ -26,6 +26,23 @@ public class LeekService {
         return Leek.fromJson(leekJson);
     }
 
+    public List<Leek> getLeeksByIds(List<String> ids) {
+        var docs = this.leeks.findByIds(ids);
+        List<Leek> leeksList =  new java.util.ArrayList<>();
+
+        for (var doc : docs) {
+            // Convert MongoDB document to Leek instance
+            String docJson = doc.toJson();
+            var leekJson = com.alibaba.fastjson.JSON.parseObject(docJson);
+
+            Leek leek = Leek.fromJson(leekJson);
+
+            leeksList.add(leek);
+        }
+
+        return leeksList;
+    }
+
     public List<Leek> getAllLeeks() {
         List<Leek> allLeeks =  new java.util.ArrayList<>();
 

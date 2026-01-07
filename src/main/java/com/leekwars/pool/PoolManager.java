@@ -1,12 +1,12 @@
 package com.leekwars.pool;
 
-import com.leekwars.pool.categories.PoolDuel;
 import com.leekwars.pool.elo.EloManager;
+import com.leekwars.pool.leek.PoolRunLeek;
 import com.leekwars.pool.run.categories.PoolRunDuel;
-import com.leekwars.pool.run.fight.categories.PoolFightDuo;
-import com.leekwars.pool.scenarios.ScenarioManager;
+import com.leekwars.pool.run.fight.categories.PoolFightDuel;
 import com.leekwars.pool.scenarios.categories.PoolScenarioDuel;
-import com.leekwars.api.mongo.MongoDbManager;
+import com.leekwars.api.mongo.services.PoolFightDuelService;
+import com.leekwars.api.mongo.services.PoolRunDuelService;
 import com.leekwars.generator.Generator;
 import com.leekwars.generator.outcome.Outcome;
 import com.leekwars.generator.scenario.Scenario;
@@ -18,19 +18,23 @@ import java.util.List;
 import java.util.Map;
 
 public class PoolManager {
-    private ScenarioManager scenarioManager = new ScenarioManager();
-    private MongoDbManager mongoDbManager;
     private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(10);
     private Map<String, ScheduledFuture<?>> runningPools = new ConcurrentHashMap<>();
 
-    public Generator generator = new Generator();
+    public Generator generator;
 
-    public PoolManager(MongoDbManager mongoDbManager) {
-        this.mongoDbManager = mongoDbManager;
+    public PoolRunDuelService poolRunDuelService;
+    public PoolFightDuelService poolFightDuelService;
+
+    public PoolManager(PoolRunDuelService poolRunDuelService, PoolFightDuelService poolFightDuelService) {
         System.out.println("PoolManager: Init");
-
+        
+        this.poolRunDuelService = poolRunDuelService;
+        this.poolFightDuelService = poolFightDuelService;
+        
         // Without the cache it is 4x slower, need to investigate if it's needed, or if
         // we could only disable cache for the first iteration?
+        generator = new Generator();
         generator.setCache(true);
     }
 
@@ -56,43 +60,44 @@ public class PoolManager {
 
                         Outcome outcome = generator.runScenario(scenario, null, new LocalDbRegisterManager(), new LocalTrophyManager());
 
-                        System.out.println("Winner: " + outcome.winner);
-
                         // store the fight result
-                        PoolFightDuo fight = null;
-                        float delta1 = 0;
-                        float delta2 = 0;
+
+                        PoolFightDuel fight = null;
+
+                        PoolRunLeek leek1 = poolRunDuel.getLeekById(poolScenario.leek1.id);
+                        PoolRunLeek leek2 = poolRunDuel.getLeekById(poolScenario.leek2.id);
 
                         // draw
                         if (outcome.winner == -1) {
-                            fight = new PoolFightDuo(poolRunDuel.id, poolScenario.leek1.id, poolScenario.leek2.id, "", scenario.seed);
+                            fight = new PoolFightDuel(poolRunDuel.id, poolScenario.leek1.id, poolScenario.leek2.id, "", scenario.seed);
 
-                            delta1 = EloManager.GetRatingDelta(poolScenario.leek1.elo, poolScenario.leek2.elo, 0.5f);
-                            delta2 = EloManager.GetRatingDelta(poolScenario.leek2.elo, poolScenario.leek1.elo, 0.5f);
+                            leek1.elo += EloManager.GetRatingDelta(poolScenario.leek1.elo, poolScenario.leek2.elo, 0.5f);
+                            leek2.elo += EloManager.GetRatingDelta(poolScenario.leek2.elo, poolScenario.leek1.elo, 0.5f);
                         }
                         // leek1 wins
                         else if (outcome.winner == 0) {
-                            fight = new PoolFightDuo(poolRunDuel.id, poolScenario.leek1.id, poolScenario.leek2.id, poolScenario.leek1.id, scenario.seed);
+                            fight = new PoolFightDuel(poolRunDuel.id, poolScenario.leek1.id, poolScenario.leek2.id, poolScenario.leek1.id, scenario.seed);
                             
-                            delta1 = EloManager.GetRatingDelta(poolScenario.leek1.elo, poolScenario.leek2.elo, 1.0f);
-                            delta2 = EloManager.GetRatingDelta(poolScenario.leek2.elo, poolScenario.leek1.elo, 0.0f);
+                            leek1.elo += EloManager.GetRatingDelta(poolScenario.leek1.elo, poolScenario.leek2.elo, 1.0f);
+                            leek2.elo += EloManager.GetRatingDelta(poolScenario.leek2.elo, poolScenario.leek1.elo, 0.0f);
                         }
                         // leek2 wins
                         else if (outcome.winner == 1) {
-                            fight = new PoolFightDuo(poolRunDuel.id, poolScenario.leek1.id, poolScenario.leek2.id, poolScenario.leek2.id, scenario.seed);
+                            fight = new PoolFightDuel(poolRunDuel.id, poolScenario.leek1.id, poolScenario.leek2.id, poolScenario.leek2.id, scenario.seed);
                             
-                            delta1 = EloManager.GetRatingDelta(poolScenario.leek1.elo, poolScenario.leek2.elo, 0.0f);
-                            delta2 = EloManager.GetRatingDelta(poolScenario.leek2.elo, poolScenario.leek1.elo, 1.0f);
+                            leek1.elo += EloManager.GetRatingDelta(poolScenario.leek1.elo, poolScenario.leek2.elo, 0.0f);
+                            leek2.elo += EloManager.GetRatingDelta(poolScenario.leek2.elo, poolScenario.leek1.elo, 1.0f);
                         }
 
                         if (fight != null) {
-                            mongoDbManager.addFightItem(fight);
-
-                            poolScenario.leek1.elo += delta1;
-                            poolScenario.leek2.elo += delta2;
+                            this.poolFightDuelService.addPoolFight(fight);
 
                             // update leeks elo in database
-                            mongoDbManager.updateFightDuoLeeksElo(poolRunDuel.id, poolScenario.leek1, poolScenario.leek1.elo, poolScenario.leek2, poolScenario.leek2.elo);
+                            boolean updatePoolSuccess = this.poolRunDuelService.updatePoolRunDuel(poolRunDuel.id, poolRunDuel);
+                            
+                            if (!updatePoolSuccess) {
+                                System.err.println("Failed to update leeks elo for PoolRunDuel ID " + poolRunDuel.id);
+                            }
                         }
 
                         fightCount++;
@@ -100,7 +105,15 @@ public class PoolManager {
                         // early stop if pool is no longer running
                         if (!isPoolRunning(poolRunDuel.pool.id)) {
                             System.out.println("Pool " + poolRunDuel.pool.id + " has been stopped. Exiting fight loop.");
-                            poolRunDuel.stop(mongoDbManager, true);
+                            poolRunDuel.stop(true);
+
+                            // update pool run duel status in database
+                            boolean updatePoolSuccess = this.poolRunDuelService.updatePoolRunDuel(poolRunDuel.id, poolRunDuel);
+
+                            if (!updatePoolSuccess) {
+                                System.err.println("Failed to update PoolRunDuel status for PoolRunDuel ID " + poolRunDuel.id);
+                            }
+
                             // remove pool from runningPools map
                             runningPools.remove(poolRunDuel.pool.id);
                             return;
@@ -114,10 +127,10 @@ public class PoolManager {
             } else {
                 // unlimited fights until stopped
             }
-            poolRunDuel.stop(mongoDbManager, false);
+            poolRunDuel.stop(false);
             // remove pool from runningPools map
             runningPools.remove(poolRunDuel.pool.id);
-            System.out.println("Pool " + poolRunDuel.pool.id + " completed all fights and stopped.");
+            System.out.println("PoolRunDuel " + poolRunDuel.pool.id + " completed all fights and stopped.");
         }, 0, TimeUnit.SECONDS);
 
         runningPools.put(poolRunDuel.pool.id, fightRunner);
