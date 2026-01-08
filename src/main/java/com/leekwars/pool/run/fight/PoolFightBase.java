@@ -12,6 +12,5 @@ public class PoolFightBase {
         this.seed = seed;
         this.type = type;
         this.date = System.currentTimeMillis();
-        this.id = java.util.UUID.randomUUID().toString();
     }
 }
