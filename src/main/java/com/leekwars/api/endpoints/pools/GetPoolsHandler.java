@@ -18,8 +18,6 @@ public class GetPoolsHandler implements HttpHandler {
         }
 
         try {
-            JSONObject json = RequestUtils.readRequestBody(exchange);
-
             // For demonstration, we return a static list of pools
             JSONArray pools = new JSONArray();
             pools.add("Pool A");

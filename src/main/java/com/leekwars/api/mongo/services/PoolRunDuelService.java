@@ -1,7 +1,5 @@
 package com.leekwars.api.mongo.services;
 
-import org.bson.Document;
-
 import com.leekwars.api.mongo.repositories.PoolRunDuelRepository;
 import com.leekwars.pool.run.categories.PoolRunDuel;
 

@@ -133,7 +133,7 @@ public class HttpApi {
         server.createContext("/api/pools/duel/add-leek", new LoggingHandler(
                 new MongoHandler(mongoClientProvider, new AddLeekToPoolDuelHandler(poolDuelService, leekService))));
         server.createContext("/api/pools/duel/remove-leek", new LoggingHandler(
-                new MongoHandler(mongoClientProvider, new RemoveLeekFromPoolDuelHandler(poolDuelService, leekService))));
+                new MongoHandler(mongoClientProvider, new RemoveLeekFromPoolDuelHandler(poolDuelService))));
         server.createContext("/api/pools/duel/start", new LoggingHandler(
                 new MongoHandler(mongoClientProvider, new StartPoolDuelHandler(poolManager, leekService, poolDuelService, poolRunDuelService, leekScriptAiService, generator))));
         server.createContext("/api/pools/duel/stop", new LoggingHandler(

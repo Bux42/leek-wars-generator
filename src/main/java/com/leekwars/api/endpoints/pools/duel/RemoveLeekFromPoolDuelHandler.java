@@ -3,21 +3,17 @@ package com.leekwars.api.endpoints.pools.duel;
 import java.io.IOException;
 
 import com.alibaba.fastjson.JSONObject;
-import com.leekwars.api.mongo.services.LeekService;
 import com.leekwars.api.mongo.services.PoolDuelService;
 import com.leekwars.api.utils.RequestUtils;
 import com.leekwars.pool.categories.PoolDuel;
-import com.leekwars.pool.leek.Leek;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
 public class RemoveLeekFromPoolDuelHandler implements HttpHandler {
     private final PoolDuelService poolDuelService;
-    private final LeekService leekService;
 
-    public RemoveLeekFromPoolDuelHandler(PoolDuelService poolDuelService, LeekService leekService) {
+    public RemoveLeekFromPoolDuelHandler(PoolDuelService poolDuelService) {
         this.poolDuelService = poolDuelService;
-        this.leekService = leekService;
     }
 
     @Override
