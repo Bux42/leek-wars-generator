@@ -94,7 +94,9 @@ public class PoolRunDuel extends PoolRunBase {
 
         poolRunDuel.startTime = json.getLongValue("startTime");
         poolRunDuel.endTime = json.getLongValue("endTime");
+        poolRunDuel.running = json.getBooleanValue("running");
+        poolRunDuel.interrupted = json.getBooleanValue("interrupted");
+
         return poolRunDuel;
     }
-
 }
