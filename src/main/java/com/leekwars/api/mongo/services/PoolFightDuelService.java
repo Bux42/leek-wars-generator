@@ -26,4 +26,8 @@ public class PoolFightDuelService {
     public int countAllPoolFights() {
         return this.poolFightDuel.countAll();
     }
+
+    public int countAllPoolFightsByPoolRunId(String poolRunId) {
+        return this.poolFightDuel.countAllByPoolRunId(poolRunId);
+    }
 }

@@ -1,4 +1,4 @@
-package com.leekwars.api.endpoints.poolFights;
+package com.leekwars.api.endpoints.poolFights.duel;
 
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpExchange;
@@ -9,10 +9,10 @@ import com.alibaba.fastjson.JSONObject;
 import com.leekwars.api.mongo.services.PoolFightDuelService;
 import com.leekwars.api.utils.RequestUtils;
 
-public class CountAllDuelPoolFightsHandler implements HttpHandler {
+public class CountAllDuelPoolFightsByPoolRunIdHandler implements HttpHandler {
     private final PoolFightDuelService poolFightDuelService;
 
-    public CountAllDuelPoolFightsHandler(PoolFightDuelService poolFightDuelService) {
+    public CountAllDuelPoolFightsByPoolRunIdHandler(PoolFightDuelService poolFightDuelService) {
         this.poolFightDuelService = poolFightDuelService;
     }
 
@@ -24,15 +24,24 @@ public class CountAllDuelPoolFightsHandler implements HttpHandler {
         }
 
         try {
-            int count = poolFightDuelService.countAllPoolFights();
+            JSONObject json = RequestUtils.readRequestBody(exchange);
+
+            String poolRunId = json.getString("poolRunId");
+
+            if (poolRunId == null || poolRunId.isEmpty()) {
+                RequestUtils.sendResponse(exchange, 400, "Missing required field: poolRunId");
+                return;
+            }
+
+            int count = poolFightDuelService.countAllPoolFightsByPoolRunId(poolRunId);
 
             JSONObject response = new JSONObject();
             response.put("count", count);
             response.put("success", true);
-            
+
             RequestUtils.sendJsonResponse(exchange, 200, response);
         } catch (Exception e) {
-            System.err.println("Error in CountAllDuelPoolFightsHandler: " + e.getMessage());
+            System.err.println("Error in CountAllDuelPoolFightsByPoolRunIdHandler: " + e.getMessage());
             e.printStackTrace();
             RequestUtils.sendResponse(exchange, 500, "Internal server error: " + e.getMessage());
         }

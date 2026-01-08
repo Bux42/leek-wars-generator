@@ -20,4 +20,8 @@ public class PoolFightDuelRepository {
     public int countAll() {
         return (int) poolFights.countDocuments();
     }
+
+    public int countAllByPoolRunId(String poolRunId) {
+        return (int) poolFights.countDocuments(new Document("poolRunId", poolRunId));
+    }
 }
