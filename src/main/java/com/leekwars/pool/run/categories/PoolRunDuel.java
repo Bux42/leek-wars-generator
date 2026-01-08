@@ -3,6 +3,7 @@ package com.leekwars.pool.run.categories;
 import java.util.List;
 import com.leekwars.pool.scenarios.ScenarioManager;
 import com.leekwars.pool.scenarios.categories.PoolScenarioDuel;
+import com.alibaba.fastjson.JSONObject;
 import com.leekwars.generator.scenario.Scenario;
 import com.leekwars.pool.BasePool;
 import com.leekwars.pool.leek.PoolRunLeek;
@@ -65,6 +66,35 @@ public class PoolRunDuel extends PoolRunBase {
         }
 
         return scenarios;
+    }
+
+    public static PoolRunDuel fromJson(JSONObject json) {
+        List<PoolRunLeek> leeks = new java.util.ArrayList<>();
+
+        for (Object obj : json.getJSONArray("leeks")) {
+            JSONObject leekJson = (JSONObject) obj;
+            PoolRunLeek leek = PoolRunLeek.fromJson(leekJson);
+            leeks.add(leek);
+        }
+
+        PoolRunDuel poolRunDuel = new PoolRunDuel(
+            BasePool.fromJson(json.getJSONObject("pool")),
+            leeks
+        );
+
+        // from front API, id is a string field
+        if (json.containsKey("id")) {
+            poolRunDuel.id = json.getString("id");
+        }
+
+        // from mongoDB, _id is an object with $oid field
+        else if (json.containsKey("_id")) {
+            poolRunDuel.id = json.getJSONObject("_id").getString("$oid").toString();
+        }
+
+        poolRunDuel.startTime = json.getLongValue("startTime");
+        poolRunDuel.endTime = json.getLongValue("endTime");
+        return poolRunDuel;
     }
 
 }

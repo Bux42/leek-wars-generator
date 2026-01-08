@@ -1,5 +1,8 @@
 package com.leekwars.api.mongo.services;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.leekwars.api.mongo.repositories.PoolRunDuelRepository;
 import com.leekwars.pool.run.categories.PoolRunDuel;
 
@@ -8,6 +11,18 @@ public class PoolRunDuelService {
 
     public PoolRunDuelService(PoolRunDuelRepository duelPoolRuns) {
         this.duelPoolRuns = duelPoolRuns;
+    }
+
+    public List<PoolRunDuel> getAllPoolRunDuels() {
+        var docs = this.duelPoolRuns.findAll();
+        List<PoolRunDuel> poolRunDuels = new ArrayList<>();
+
+        for (var doc : docs) {
+            String duelJson = doc.toJson();
+            PoolRunDuel poolRunDuel = PoolRunDuel.fromJson(com.alibaba.fastjson.JSON.parseObject(duelJson, com.alibaba.fastjson.JSONObject.class));
+            poolRunDuels.add(poolRunDuel);
+        }
+        return poolRunDuels;
     }
 
     public String addPoolRunDuel(PoolRunDuel poolRunDuel) {

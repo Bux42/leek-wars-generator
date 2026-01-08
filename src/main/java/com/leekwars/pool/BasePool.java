@@ -1,5 +1,7 @@
 package com.leekwars.pool;
 
+import com.alibaba.fastjson.JSONObject;
+
 public class BasePool {
     public boolean enabled = false;
     public boolean resetElo = true;
@@ -22,5 +24,27 @@ public class BasePool {
         this.fightLimit = fightLimit;
         this.deterministic = deterministic;
         this.startSeed = startSeed;
+    }
+
+    public static BasePool fromJson(JSONObject json) {
+        String id = "";
+        
+        if (json.containsKey("_id")) {
+            id = json.getJSONObject("_id").getString("$oid").toString();
+        } else if (json.containsKey("id")) {
+            id = json.getString("id");
+        }
+
+        BasePool pool = new BasePool(
+            json.getString("name"),
+            id,
+            json.getBooleanValue("enabled"),
+            json.getBooleanValue("resetElo"),
+            json.getBooleanValue("fightLimitEnabled"),
+            json.getIntValue("fightLimit"),
+            json.getBooleanValue("deterministic"),
+            json.getIntValue("startSeed")
+        );
+        return pool;
     }
 }
