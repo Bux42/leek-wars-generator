@@ -22,4 +22,8 @@ public class PoolFightDuelService {
         this.poolFightDuel.insert(fightData);
         return fightData.getObjectId("_id").toHexString();
     }
+
+    public int countAllPoolFights() {
+        return this.poolFightDuel.countAll();
+    }
 }

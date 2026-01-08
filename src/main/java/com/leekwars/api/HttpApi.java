@@ -16,6 +16,7 @@ import com.leekwars.api.endpoints.leeks.AddLeekHandler;
 import com.leekwars.api.endpoints.leeks.DeleteLeekHandler;
 import com.leekwars.api.endpoints.leeks.GetAllLeeksHandler;
 import com.leekwars.api.endpoints.leeks.UpdateLeekHandler;
+import com.leekwars.api.endpoints.poolFights.CountAllDuelPoolFightsHandler;
 import com.leekwars.api.endpoints.poolRuns.duel.GetAllDuelPoolRunsHandler;
 import com.leekwars.api.endpoints.pools.GetPoolsHandler;
 import com.leekwars.api.endpoints.pools.duel.AddLeekToPoolDuelHandler;
@@ -143,6 +144,10 @@ public class HttpApi {
         // Pool duel runs endpoints
         server.createContext("/api/pool-runs/duel/get-all", new LoggingHandler(
                 new MongoHandler(mongoClientProvider, new GetAllDuelPoolRunsHandler(poolRunDuelService))));
+
+        // Pool duel fights endpoints
+        server.createContext("/api/pool-fights/duel/count-all", new LoggingHandler(
+                new MongoHandler(mongoClientProvider, new CountAllDuelPoolFightsHandler(poolFightDuelService))));
 
         // Leeks
         server.createContext("/api/leeks/get-all", new LoggingHandler(

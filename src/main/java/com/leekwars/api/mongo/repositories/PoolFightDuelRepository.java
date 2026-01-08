@@ -16,4 +16,8 @@ public class PoolFightDuelRepository {
         poolFights.insertOne(poolFight);
         return poolFight.getObjectId("_id").toHexString();
     }
+
+    public int countAll() {
+        return (int) poolFights.countDocuments();
+    }
 }
