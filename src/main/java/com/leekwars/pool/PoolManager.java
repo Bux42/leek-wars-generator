@@ -128,6 +128,14 @@ public class PoolManager {
                 // unlimited fights until stopped
             }
             poolRunDuel.stop(false);
+
+            // update pool run duel status in database
+            boolean updatePoolSuccess = this.poolRunDuelService.updatePoolRunDuel(poolRunDuel.id, poolRunDuel);
+
+            if (!updatePoolSuccess) {
+                System.err.println("Failed to update PoolRunDuel status for PoolRunDuel ID " + poolRunDuel.id);
+            }
+
             // remove pool from runningPools map
             runningPools.remove(poolRunDuel.pool.id);
             System.out.println("PoolRunDuel " + poolRunDuel.pool.id + " completed all fights and stopped.");
