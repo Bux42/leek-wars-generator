@@ -36,4 +36,19 @@ public class RequestUtils {
             os.write(responseBytes);
         }
     }
+
+    // Get query parameter from URL
+    public static String getQueryParam(String query, String param) {
+        if (query == null || query.isEmpty()) {
+            return null;
+        }
+        String[] params = query.split("&");
+        for (String p : params) {
+            String[] keyValue = p.split("=");
+            if (keyValue.length == 2 && keyValue[0].equals(param)) {
+                return keyValue[1];
+            }
+        }
+        return null;
+    }
 }

@@ -15,6 +15,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.leekwars.api.endpoints.leeks.AddLeekHandler;
 import com.leekwars.api.endpoints.leeks.DeleteLeekHandler;
 import com.leekwars.api.endpoints.leeks.GetAllLeeksHandler;
+import com.leekwars.api.endpoints.leeks.GetLeekByIdHandler;
 import com.leekwars.api.endpoints.leeks.UpdateLeekHandler;
 import com.leekwars.api.endpoints.poolFights.duel.CountAllDuelPoolFightsByPoolRunIdHandler;
 import com.leekwars.api.endpoints.poolFights.duel.CountAllDuelPoolFightsHandler;
@@ -161,6 +162,8 @@ public class HttpApi {
                 new MongoHandler(mongoClientProvider, new DeleteLeekHandler(leekService))));
         server.createContext("/api/leeks/update", new LoggingHandler(
                 new MongoHandler(mongoClientProvider, new UpdateLeekHandler(leekService))));
+        server.createContext("/api/leeks/get-by-id", new LoggingHandler(
+                new MongoHandler(mongoClientProvider, new GetLeekByIdHandler(leekService))));
 
         // File browsing endpoints
         server.createContext("/api/file/list", new LoggingHandler(new FileListHandler()));
