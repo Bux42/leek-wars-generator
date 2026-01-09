@@ -10,10 +10,10 @@ import com.leekwars.pool.run.categories.PoolRunDuel;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
-public class GetAllDuelPoolRunsHandler implements HttpHandler {
+public class GetPoolRunDuelByPoolId implements HttpHandler {
     private final PoolRunDuelService poolRunDuelService;
 
-    public GetAllDuelPoolRunsHandler(PoolRunDuelService poolRunDuelService) {
+    public GetPoolRunDuelByPoolId(PoolRunDuelService poolRunDuelService) {
         this.poolRunDuelService = poolRunDuelService;
     }
 
@@ -24,7 +24,10 @@ public class GetAllDuelPoolRunsHandler implements HttpHandler {
             return;
         }
         try {
-            List<PoolRunDuel> poolRunDuels = poolRunDuelService.getAllPoolRunDuels();
+            String query = exchange.getRequestURI().getQuery();
+            String poolId = RequestUtils.getQueryParam(query, "poolId");
+
+            List<PoolRunDuel> poolRunDuels = poolRunDuelService.getAllPoolRunDuelByPoolId(poolId);
 
             JSONObject response = new JSONObject();
             response.put("poolRunDuels", poolRunDuels);
@@ -33,9 +36,10 @@ public class GetAllDuelPoolRunsHandler implements HttpHandler {
             RequestUtils.sendJsonResponse(exchange, 200, response);
 
         } catch (Exception e) {
-            System.err.println("Error in GetAllDuelPoolRunsHandler: " + e.getMessage());
+            System.err.println("Error in GetPoolRunDuelByPoolId: " + e.getMessage());
             e.printStackTrace();
             RequestUtils.sendResponse(exchange, 500, "Internal server error: " + e.getMessage());
         }
     }
+    
 }

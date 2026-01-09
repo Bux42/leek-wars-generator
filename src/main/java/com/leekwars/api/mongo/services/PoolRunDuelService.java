@@ -25,6 +25,28 @@ public class PoolRunDuelService {
         return poolRunDuels;
     }
 
+    public PoolRunDuel getPoolRunDuelById(String id) {
+        var docOpt = this.duelPoolRuns.findById(id);
+        if (docOpt.isEmpty()) {
+            return null;
+        }
+        String duelJson = docOpt.get().toJson();
+        return PoolRunDuel.fromJson(com.alibaba.fastjson.JSON.parseObject(duelJson, com.alibaba.fastjson.JSONObject.class));
+    }
+
+    public List<PoolRunDuel> getAllPoolRunDuelByPoolId(String poolId) {
+        var docs = this.duelPoolRuns.findAllByPoolid(poolId);
+        if (docs == null) {
+            return null;
+        }
+        List<PoolRunDuel> poolRunDuels = new ArrayList<>();
+        for (var doc : docs) {
+            String duelJson = doc.toJson();
+            poolRunDuels.add(PoolRunDuel.fromJson(com.alibaba.fastjson.JSON.parseObject(duelJson, com.alibaba.fastjson.JSONObject.class)));
+        }
+        return poolRunDuels;
+    }
+
     public String addPoolRunDuel(PoolRunDuel poolRunDuel) {
         // Convert PoolRunDuel instance to MongoDB Document
         String duelJson = com.alibaba.fastjson.JSON.toJSONString(poolRunDuel);

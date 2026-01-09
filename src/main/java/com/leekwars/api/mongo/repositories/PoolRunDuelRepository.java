@@ -19,6 +19,10 @@ public class PoolRunDuelRepository {
         return Optional.ofNullable(doc);
     }
 
+    public Iterable<Document> findAllByPoolid(String poolId) {
+        return duelPoolRuns.find(new Document("pool.id", poolId));
+    }
+
     public String insert(Document poolDuel) {
         duelPoolRuns.insertOne(poolDuel);
         return poolDuel.getObjectId("_id").toHexString();
