@@ -24,7 +24,7 @@ public class GetAllDuelPoolRunsHandler implements HttpHandler {
             return;
         }
         try {
-            List<PoolRunDuel> poolRunDuels = poolRunDuelService.getAllPoolRunDuels();
+            List<PoolRunDuel> poolRunDuels = poolRunDuelService.getAllPoolRunDuels().reversed();
 
             JSONObject response = new JSONObject();
             response.put("poolRunDuels", poolRunDuels);

@@ -27,7 +27,7 @@ public class GetPoolRunDuelByPoolId implements HttpHandler {
             String query = exchange.getRequestURI().getQuery();
             String poolId = RequestUtils.getQueryParam(query, "poolId");
 
-            List<PoolRunDuel> poolRunDuels = poolRunDuelService.getAllPoolRunDuelByPoolId(poolId);
+            List<PoolRunDuel> poolRunDuels = poolRunDuelService.getAllPoolRunDuelByPoolId(poolId).reversed();
 
             JSONObject response = new JSONObject();
             response.put("poolRunDuels", poolRunDuels);
