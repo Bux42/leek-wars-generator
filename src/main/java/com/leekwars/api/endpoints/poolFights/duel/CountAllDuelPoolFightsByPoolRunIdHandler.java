@@ -24,9 +24,8 @@ public class CountAllDuelPoolFightsByPoolRunIdHandler implements HttpHandler {
         }
 
         try {
-            JSONObject json = RequestUtils.readRequestBody(exchange);
-
-            String poolRunId = json.getString("poolRunId");
+            String query = exchange.getRequestURI().getQuery();
+            String poolRunId = RequestUtils.getQueryParam(query, "poolRunId");
 
             if (poolRunId == null || poolRunId.isEmpty()) {
                 RequestUtils.sendResponse(exchange, 400, "Missing required field: poolRunId");
