@@ -1,5 +1,10 @@
 package com.leekwars.api.mongo.services;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.leekwars.api.mongo.repositories.PoolFightDuelRepository;
 import com.leekwars.pool.run.fight.categories.PoolFightDuel;
 
@@ -29,5 +34,21 @@ public class PoolFightDuelService {
 
     public int countAllPoolFightsByPoolRunId(String poolRunId) {
         return this.poolFightDuel.countAllByPoolRunId(poolRunId);
+    }
+
+    public List<PoolFightDuel> getAllByPoolRunId(String poolRunId) {
+        var docs = this.poolFightDuel.getAllByPoolRunId(poolRunId);
+        if (docs == null) {
+            return null;
+        }
+
+        List<PoolFightDuel> poolFightsDuel = new ArrayList<>();
+
+        for (var doc : docs) {
+            String duelJson = doc.toJson();
+            poolFightsDuel.add(PoolFightDuel.fromJson(JSON.parseObject(duelJson, JSONObject.class)));
+        }
+
+        return poolFightsDuel;
     }
 }

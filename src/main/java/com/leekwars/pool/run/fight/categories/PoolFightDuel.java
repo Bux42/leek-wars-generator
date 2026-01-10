@@ -1,5 +1,6 @@
 package com.leekwars.pool.run.fight.categories;
 
+import com.alibaba.fastjson.JSONObject;
 import com.leekwars.pool.run.fight.PoolFightBase;
 
 public class PoolFightDuel extends PoolFightBase {
@@ -13,5 +14,22 @@ public class PoolFightDuel extends PoolFightBase {
         this.leek1Id = leek1Id;
         this.leek2Id = leek2Id;
         this.winnerLeekId = winnerLeekId;
+    }
+
+    public static PoolFightDuel fromJson(JSONObject json) {
+        PoolFightBase fightBase = PoolFightBase.fromJson(json);
+
+        PoolFightDuel fightDuel = new PoolFightDuel(
+            fightBase.poolRunId,
+            json.getString("leek1Id"),
+            json.getString("leek2Id"),
+            json.getString("winnerLeekId"),
+            fightBase.seed
+        );
+
+        fightDuel.id = fightBase.id;
+        fightDuel.date = fightBase.date;
+
+        return fightDuel;
     }
 }

@@ -24,4 +24,8 @@ public class PoolFightDuelRepository {
     public int countAllByPoolRunId(String poolRunId) {
         return (int) poolFights.countDocuments(new Document("poolRunId", poolRunId));
     }
+
+    public Iterable<Document> getAllByPoolRunId(String poolRunId) {
+        return poolFights.find(new Document("poolRunId", poolRunId));
+    }
 }
