@@ -1,23 +1,25 @@
 package com.leekwars.pool.code;
 
+import org.bson.json.JsonObject;
+
 import com.alibaba.fastjson.JSONObject;
 
-public class CodeSnapshot {
+public class LeekscriptAI {
     public String id;
 
     public MergedCode mergedCode;
     public GitInfos gitInfos;
 
-    public CodeSnapshot() {
+    public LeekscriptAI() {
     }
 
-    public CodeSnapshot(MergedCode mergedCode, GitInfos gitInfos) {
+    public LeekscriptAI(MergedCode mergedCode, GitInfos gitInfos) {
         this.mergedCode = mergedCode;
         this.gitInfos = gitInfos;
     }
 
-    public static CodeSnapshot fromJson(JSONObject json) {
-        CodeSnapshot snapshot = new CodeSnapshot();
+    public static LeekscriptAI fromJson(JSONObject json) {
+        LeekscriptAI snapshot = new LeekscriptAI();
 
         // If json comes from MongoDB, _id is an object with $oid field
         if (json.containsKey("_id")) {
@@ -29,17 +31,19 @@ public class CodeSnapshot {
             snapshot.id = json.getString("id");
         }
 
+        JSONObject mergedCodeObject = json.getJSONObject("mergedCode");
         MergedCode mergedCode = new MergedCode(
-            json.getString("mergedCodeHash"),
-            json.getString("mergedCode")
+            mergedCodeObject.getString("hash"),
+            mergedCodeObject.getString("code")
         );
         snapshot.mergedCode = mergedCode;
 
+        JSONObject gitInfosObject = json.getJSONObject("gitInfos");
         GitInfos gitInfos = new GitInfos(
-            json.getString("gitRepoUrl"),
-            json.getString("gitCommitHash"),
-            json.getBooleanValue("hasUncommittedChanges"),
-            json.getString("gitDiffOutput")
+            gitInfosObject.getString("gitRepoUrl"),
+            gitInfosObject.getString("gitCommitHash"),
+            gitInfosObject.getBooleanValue("hasUncommittedChanges"),
+            gitInfosObject.getString("gitDiffOutput")
         );
         snapshot.gitInfos = gitInfos;
 

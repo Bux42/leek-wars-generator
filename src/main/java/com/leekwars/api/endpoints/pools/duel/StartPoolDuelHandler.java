@@ -14,7 +14,7 @@ import com.leekwars.generator.Generator;
 import com.leekwars.pool.PoolManager;
 import com.leekwars.pool.categories.PoolDuel;
 import com.leekwars.pool.code.GitInfos;
-import com.leekwars.pool.code.CodeSnapshot;
+import com.leekwars.pool.code.LeekscriptAI;
 import com.leekwars.pool.code.MergedCode;
 import com.leekwars.pool.leek.Leek;
 import com.leekwars.pool.leek.LeekManager;
@@ -99,7 +99,7 @@ public class StartPoolDuelHandler implements HttpHandler {
                 PoolRunLeek poolRunLeek = new PoolRunLeek(leek, aiMergedCode.hash);
 
                 // check if we already have a snapshot of this AI saved
-                CodeSnapshot leekSnapshotAI = leekScriptAiService.getLeekAiByMergedAiCodeHash(aiMergedCode.hash);
+                LeekscriptAI leekSnapshotAI = leekScriptAiService.getLeekAiByMergedAiCodeHash(aiMergedCode.hash);
 
                 // we don't have this AI saved yet, create a new snapshot, with git info if
                 // possible
@@ -107,7 +107,7 @@ public class StartPoolDuelHandler implements HttpHandler {
                     // try and populate git info from the AI file if possible
                     GitInfos gitInfos = LeekManager.TryGetGitInfos(leek);
 
-                    leekSnapshotAI = new CodeSnapshot(aiMergedCode, gitInfos);
+                    leekSnapshotAI = new LeekscriptAI(aiMergedCode, gitInfos);
 
                     String newSnapshotId = leekScriptAiService.addLeekAi(leekSnapshotAI);
                     System.out.println("StartPoolDuelHandler: Created new AI snapshot with ID " + newSnapshotId + " for leek ID " + leek.id);

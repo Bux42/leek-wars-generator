@@ -1,7 +1,7 @@
 package com.leekwars.api.mongo.services;
 
 import com.leekwars.api.mongo.repositories.LeekscriptAiRepository;
-import com.leekwars.pool.code.CodeSnapshot;
+import com.leekwars.pool.code.LeekscriptAI;
 
 public class LeekScriptAiService {
     private final LeekscriptAiRepository leekscriptAis;
@@ -10,7 +10,7 @@ public class LeekScriptAiService {
         this.leekscriptAis = leekscriptAis;
     }
 
-    public CodeSnapshot getLeekAiById(String id) {
+    public LeekscriptAI getLeekAiById(String id) {
         var docOpt = this.leekscriptAis.findById(id);
         if (docOpt.isEmpty()) {
             return null;
@@ -21,10 +21,10 @@ public class LeekScriptAiService {
         String docJson = doc.toJson();
         var aiJson = com.alibaba.fastjson.JSON.parseObject(docJson);
 
-        return CodeSnapshot.fromJson(aiJson);
+        return LeekscriptAI.fromJson(aiJson);
     }
 
-    public CodeSnapshot getLeekAiByMergedAiCodeHash(String mergedAiCodeHash) {
+    public LeekscriptAI getLeekAiByMergedAiCodeHash(String mergedAiCodeHash) {
         var docOpt = this.leekscriptAis.findByMergedAiCodeHash(mergedAiCodeHash);
         if (docOpt.isEmpty()) {
             return null;
@@ -35,10 +35,10 @@ public class LeekScriptAiService {
         String docJson = doc.toJson();
         var aiJson = com.alibaba.fastjson.JSON.parseObject(docJson);
 
-        return CodeSnapshot.fromJson(aiJson);
+        return LeekscriptAI.fromJson(aiJson);
     }
 
-    public String addLeekAi(CodeSnapshot leekAi) {
+    public String addLeekAi(LeekscriptAI leekAi) {
         // Convert LeekSnapshotAI instance to MongoDB document
         String aiJson = com.alibaba.fastjson.JSON.toJSONString(leekAi);
         var aiData = org.bson.Document.parse(aiJson);
