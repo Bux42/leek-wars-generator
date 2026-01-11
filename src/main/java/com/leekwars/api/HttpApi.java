@@ -38,7 +38,7 @@ import com.leekwars.api.files.FileManager.FileInfo;
 import com.leekwars.api.middleware.LoggingHandler;
 import com.leekwars.api.middleware.MongoHandler;
 import com.leekwars.api.mongo.config.MongoClientProvider;
-import com.leekwars.api.mongo.repositories.LeekAiRepository;
+import com.leekwars.api.mongo.repositories.LeekscriptAiRepository;
 import com.leekwars.api.mongo.repositories.LeekRepository;
 import com.leekwars.api.mongo.repositories.PoolDuelRepository;
 import com.leekwars.api.mongo.repositories.PoolFightDuelRepository;
@@ -103,7 +103,7 @@ public class HttpApi {
         PoolFightDuelRepository poolFightDuelRepository = new PoolFightDuelRepository(mongoClientProvider);
         PoolFightDuelService poolFightDuelService = new PoolFightDuelService(poolFightDuelRepository);
 
-        LeekAiRepository leekAiRepository = new LeekAiRepository(mongoClientProvider);
+        LeekscriptAiRepository leekAiRepository = new LeekscriptAiRepository(mongoClientProvider);
         LeekScriptAiService leekScriptAiService = new LeekScriptAiService(leekAiRepository);
 
         // Initialize PoolManager
