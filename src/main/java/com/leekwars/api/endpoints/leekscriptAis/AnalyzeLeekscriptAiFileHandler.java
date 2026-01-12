@@ -33,7 +33,9 @@ public class AnalyzeLeekscriptAiFileHandler implements HttpHandler {
             String aiFilePath = json.getString("aiFilePath");
 
             AIFile aiFile = LeekManager.ResolveAIFile(aiFilePath, generator);
+            generator.setCache(false);
             AnalyzeResult result = generator.analyzeAI(aiFile, 0);
+            generator.setCache(true);
 
             if (result.informations.size() > 0 && !result.success) {
                 JSONObject errorResponse = new JSONObject();
