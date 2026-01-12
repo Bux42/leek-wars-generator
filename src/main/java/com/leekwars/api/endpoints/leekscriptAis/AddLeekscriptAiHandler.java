@@ -84,23 +84,22 @@ public class AddLeekscriptAiHandler implements HttpHandler {
 
                 leekSnapshotAI = new LeekscriptAI(aiMergedCode, gitInfos, name, description, aiFilePath);
 
-                String newSnapshotId = leekScriptAiService.addLeekscriptAi(leekSnapshotAI);
-                System.out.println("AddLeekscriptAiHandler: Created new AI snapshot with ID " + newSnapshotId);
+                leekScriptAiService.addLeekscriptAi(leekSnapshotAI);
+                System.out.println("AddLeekscriptAiHandler: Created new AI snapshot mergedCodeHash " + leekSnapshotAI.mergedCode.hash);
 
                 JSONObject response = new JSONObject();
                 response.put("success", true);
-                response.put("id", newSnapshotId);
-
+                response.put("mergedCodeHash", leekSnapshotAI.mergedCode.hash);
                 RequestUtils.sendJsonResponse(exchange, 200, response);
             } else {
-                System.out.println("AddLeekscriptAiHandler: AI snapshot already exists with ID " + leekSnapshotAI.id);
+                System.out.println("AddLeekscriptAiHandler: AI snapshot already exists mergedCodeHash " + leekSnapshotAI.mergedCode.hash);
 
                 JSONObject response = new JSONObject();
                 response.put("success", false);
                 response.put("mergedCodeHash", leekSnapshotAI.mergedCode.hash);
                 response.put("message", "AI snapshot already exists");
 
-                RequestUtils.sendJsonResponse(exchange, 409, response);
+                RequestUtils.sendJsonResponse(exchange, 200, response);
             }
 
         } catch (Exception e) {
