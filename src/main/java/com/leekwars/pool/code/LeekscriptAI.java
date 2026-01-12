@@ -1,11 +1,14 @@
 package com.leekwars.pool.code;
 
-import org.bson.json.JsonObject;
-
 import com.alibaba.fastjson.JSONObject;
 
 public class LeekscriptAI {
     public String id;
+
+    public String name;
+    public String description;
+    public String originalFilePath;
+    public long creationDate;
 
     public MergedCode mergedCode;
     public GitInfos gitInfos;
@@ -16,6 +19,15 @@ public class LeekscriptAI {
     public LeekscriptAI(MergedCode mergedCode, GitInfos gitInfos) {
         this.mergedCode = mergedCode;
         this.gitInfos = gitInfos;
+    }
+
+    public LeekscriptAI(MergedCode mergedCode, GitInfos gitInfos, String name, String description, String originalFilePath) {
+        this.mergedCode = mergedCode;
+        this.gitInfos = gitInfos;
+        this.name = name;
+        this.description = description;
+        this.originalFilePath = originalFilePath;
+        this.creationDate = System.currentTimeMillis();
     }
 
     public static LeekscriptAI fromJson(JSONObject json) {
@@ -31,6 +43,11 @@ public class LeekscriptAI {
             snapshot.id = json.getString("id");
         }
 
+        snapshot.name = json.getString("name");
+        snapshot.description = json.getString("description");
+        snapshot.originalFilePath = json.getString("originalFilePath");
+        snapshot.creationDate = json.getLongValue("creationDate");
+
         JSONObject mergedCodeObject = json.getJSONObject("mergedCode");
         MergedCode mergedCode = new MergedCode(
             mergedCodeObject.getString("hash"),
@@ -40,10 +57,11 @@ public class LeekscriptAI {
 
         JSONObject gitInfosObject = json.getJSONObject("gitInfos");
         GitInfos gitInfos = new GitInfos(
-            gitInfosObject.getString("gitRepoUrl"),
-            gitInfosObject.getString("gitCommitHash"),
+            gitInfosObject.getString("repoUrl"),
+            gitInfosObject.getString("branchName"),
+            gitInfosObject.getString("commitHash"),
             gitInfosObject.getBooleanValue("hasUncommittedChanges"),
-            gitInfosObject.getString("gitDiffOutput")
+            gitInfosObject.getString("diffOutput")
         );
         snapshot.gitInfos = gitInfos;
 

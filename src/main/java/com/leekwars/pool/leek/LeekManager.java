@@ -10,33 +10,33 @@ import leekscript.compiler.AIFile;
 import leekscript.compiler.LeekScript;
 
 public class LeekManager {
-    public static GitInfos TryGetGitInfos(Leek leek) {
-        String gitCommitHash = GitManager.tryGetGitCommitHash(leek.aiFilePath);
+    public static GitInfos TryGetGitInfos(String aiFilePath) {
+        String gitCommitHash = GitManager.tryGetGitCommitHash(aiFilePath);
 
         if (gitCommitHash == null) {
-            System.out.println("LeekManager: No git repository found for leek ID " + leek.id + ", AI path: " + leek.aiFilePath);
+            System.out.println("LeekManager: No git repository found for AI path: " + aiFilePath);
             return null;
         } else {
-            String gitRepoUrl = GitManager.tryGetGitRepoUrl(leek.aiFilePath);
-
-            String gitDiff = GitManager.tryGetGitDiff(leek.aiFilePath);
+            String gitRepoUrl = GitManager.tryGetGitRepoUrl(aiFilePath);
+            String gitBranchName = GitManager.tryGetGitBranchName(aiFilePath);
+            String gitDiff = GitManager.tryGetGitDiff(aiFilePath);
             boolean hasUncommittedChanges = gitDiff != null && !gitDiff.isEmpty();
             if (hasUncommittedChanges) {
-                System.out.println("LeekManager: Git diff for leek ID " + leek.id + ":\n" + gitDiff);
+                System.out.println("LeekManager: Git diff for AI path " + aiFilePath + ":\n" + gitDiff);
             }
 
-            System.out.println("LeekManager: Found git repository for leek ID " + leek.id + ", commit hash: " + gitCommitHash);
+            System.out.println("LeekManager: Found git repository for AI path " + aiFilePath + ", commit hash: " + gitCommitHash);
 
-            return new GitInfos(gitRepoUrl, gitCommitHash, hasUncommittedChanges, gitDiff);
+            return new GitInfos(gitRepoUrl, gitBranchName, gitCommitHash, hasUncommittedChanges, gitDiff);
         }
     }
 
-    public static MergedCode GetLeekScriptMergedCode(Leek leek, AIFile aiFile, Generator generator) {
+    public static MergedCode GetLeekScriptMergedCode(AIFile aiFile, Generator generator) {
         // get merged AI full code
         String mergedAICode = generator.downloadAI(aiFile);
 
         if (mergedAICode == null) {
-            System.out.println("LeekManager: Failed to get merged AI code for leek ID " + leek.id + ", AI path: " + leek.aiFilePath);
+            System.out.println("LeekManager: Failed to get merged AI code for AI path: " + aiFile.getFolder());
             return null;
         }
 
@@ -48,8 +48,8 @@ public class LeekManager {
         return mergedAICode;
     }
 
-    public static AIFile ResolveAIFile(Leek leek, Generator generator) {
-        String relativeAiFilePath = GetSanitizedRelativeAiFilePath(leek.aiFilePath);
+    public static AIFile ResolveAIFile(String aiFilePath, Generator generator) {
+        String relativeAiFilePath = GetSanitizedRelativeAiFilePath(aiFilePath);
 
         try {
             var ai = LeekScript.getFileSystem().getRoot().resolve(relativeAiFilePath);

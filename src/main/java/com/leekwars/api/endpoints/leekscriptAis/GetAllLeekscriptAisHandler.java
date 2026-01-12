@@ -1,18 +1,21 @@
+
 package com.leekwars.api.endpoints.leekscriptAis;
 
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpExchange;
 
 import java.io.IOException;
+import java.util.List;
+
 import com.alibaba.fastjson.JSONObject;
 import com.leekwars.api.mongo.services.LeekScriptAiService;
 import com.leekwars.api.utils.RequestUtils;
 import com.leekwars.pool.code.LeekscriptAI;
 
-public class GetLeekscriptAiByIdHandler implements HttpHandler {
+public class GetAllLeekscriptAisHandler implements HttpHandler {
     private final LeekScriptAiService leekScriptAiService;
 
-    public GetLeekscriptAiByIdHandler(LeekScriptAiService leekScriptAiService) {
+    public GetAllLeekscriptAisHandler(LeekScriptAiService leekScriptAiService) {
         this.leekScriptAiService = leekScriptAiService;
     }
 
@@ -25,17 +28,11 @@ public class GetLeekscriptAiByIdHandler implements HttpHandler {
 
         try {
             String query = exchange.getRequestURI().getQuery();
-            String mergedCodeHash = RequestUtils.getQueryParam(query, "mergedCodeHash");
             String removeCode = RequestUtils.getQueryParam(query, "removeCode");
 
             boolean shouldRemoveCode = "true".equalsIgnoreCase(removeCode);
 
-            if (mergedCodeHash == null || mergedCodeHash.isEmpty()) {
-                RequestUtils.sendResponse(exchange, 400, "Missing required field: mergedCodeHash");
-                return;
-            }
-
-            LeekscriptAI leekscriptAi = leekScriptAiService.getLeekscriptAiByMergedAiCodeHash(mergedCodeHash, shouldRemoveCode);
+            List<LeekscriptAI> leekscriptAi = leekScriptAiService.getAllLeekscriptAis(shouldRemoveCode);
 
             if (leekscriptAi == null) {
                 RequestUtils.sendResponse(exchange, 404, "Leekscript AI not found");
@@ -44,12 +41,12 @@ public class GetLeekscriptAiByIdHandler implements HttpHandler {
 
             JSONObject response = new JSONObject();
 
-            response.put("codeSnapshot", leekscriptAi);
+            response.put("leekscriptAis", leekscriptAi);
             response.put("success", true);
 
             RequestUtils.sendJsonResponse(exchange, 200, response);
         } catch (Exception e) {
-            System.err.println("Error in GetLeekscriptAiByIdHandler: " + e.getMessage());
+            System.err.println("Error in GetAllLeekscriptAisHandler: " + e.getMessage());
             e.printStackTrace();
             RequestUtils.sendResponse(exchange, 500, "Internal server error: " + e.getMessage());
         }

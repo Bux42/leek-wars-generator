@@ -1,15 +1,17 @@
 package com.leekwars.pool.code;
 
 public class GitInfos {
-    public String gitRepoUrl;
-    public String gitCommitHash;
+    public String repoUrl;
+    public String branchName;
+    public String commitHash;
     public boolean hasUncommittedChanges;
-    public String gitDiffOutput;
+    public String diffOutput;
 
-    public GitInfos(String gitRepoUrl, String gitCommitHash, boolean hasUncommittedChanges, String gitDiffOutput) {
-        this.gitRepoUrl = gitRepoUrl;
-        this.gitCommitHash = gitCommitHash;
+    public GitInfos(String repoUrl, String branchName, String commitHash, boolean hasUncommittedChanges, String diffOutput) {
+        this.repoUrl = repoUrl;
+        this.branchName = branchName;
+        this.commitHash = commitHash;
         this.hasUncommittedChanges = hasUncommittedChanges;
-        this.gitDiffOutput = gitDiffOutput;
+        this.diffOutput = diffOutput;
     }
 }

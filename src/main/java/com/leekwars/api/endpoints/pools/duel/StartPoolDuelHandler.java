@@ -80,7 +80,7 @@ public class StartPoolDuelHandler implements HttpHandler {
             List<PoolRunLeek> poolRunLeeks = new ArrayList<>();
 
             for (Leek leek : poolDuelLeeks) {
-                AIFile aiFile = LeekManager.ResolveAIFile(leek, generator);
+                AIFile aiFile = LeekManager.ResolveAIFile(leek.aiFilePath, generator);
 
                 if (aiFile == null) {
                     RequestUtils.sendResponse(exchange, 404, "AI file not found for leek ID " + leek.id);
@@ -88,7 +88,7 @@ public class StartPoolDuelHandler implements HttpHandler {
                 }
 
                 // get merged AI code and its hash
-                MergedCode aiMergedCode = LeekManager.GetLeekScriptMergedCode(leek, aiFile, generator);
+                MergedCode aiMergedCode = LeekManager.GetLeekScriptMergedCode(aiFile, generator);
 
                 if (aiMergedCode == null) {
                     RequestUtils.sendResponse(exchange, 500, "Failed to get merged AI code for leek ID " + leek.id);
@@ -99,17 +99,17 @@ public class StartPoolDuelHandler implements HttpHandler {
                 PoolRunLeek poolRunLeek = new PoolRunLeek(leek, aiMergedCode.hash);
 
                 // check if we already have a snapshot of this AI saved
-                LeekscriptAI leekSnapshotAI = leekScriptAiService.getLeekAiByMergedAiCodeHash(aiMergedCode.hash);
+                LeekscriptAI leekSnapshotAI = leekScriptAiService.getLeekscriptAiByMergedAiCodeHash(aiMergedCode.hash, true);
 
                 // we don't have this AI saved yet, create a new snapshot, with git info if
                 // possible
                 if (leekSnapshotAI == null) {
                     // try and populate git info from the AI file if possible
-                    GitInfos gitInfos = LeekManager.TryGetGitInfos(leek);
+                    GitInfos gitInfos = LeekManager.TryGetGitInfos(leek.aiFilePath);
 
                     leekSnapshotAI = new LeekscriptAI(aiMergedCode, gitInfos);
 
-                    String newSnapshotId = leekScriptAiService.addLeekAi(leekSnapshotAI);
+                    String newSnapshotId = leekScriptAiService.addLeekscriptAi(leekSnapshotAI);
                     System.out.println("StartPoolDuelHandler: Created new AI snapshot with ID " + newSnapshotId + " for leek ID " + leek.id);
                 }
 

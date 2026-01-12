@@ -67,4 +67,23 @@ public class GitManager {
 
         return null;
     }
+
+    public static String tryGetGitBranchName(String aiFilePath) {
+        // get the parent directory of the AI file path
+        String sanitizedAiFileDirectoryPath = FileManager.GetSanitizedRelativeAiFilePath(aiFilePath);
+
+        List<String> terminalCommandTokens = new ArrayList<>();
+        terminalCommandTokens.add("git");
+        terminalCommandTokens.add("rev-parse");
+        terminalCommandTokens.add("--abbrev-ref");
+        terminalCommandTokens.add("HEAD");
+
+        String bashOutput = TerminalManager.ExecuteCommand(terminalCommandTokens, sanitizedAiFileDirectoryPath).trim();
+
+        if (bashOutput != null && !bashOutput.isEmpty()) {
+            return bashOutput;
+        }
+
+        return null;
+    }
 }

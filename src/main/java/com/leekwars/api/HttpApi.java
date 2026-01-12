@@ -17,6 +17,9 @@ import com.leekwars.api.endpoints.leeks.DeleteLeekHandler;
 import com.leekwars.api.endpoints.leeks.GetAllLeeksHandler;
 import com.leekwars.api.endpoints.leeks.GetLeekByIdHandler;
 import com.leekwars.api.endpoints.leeks.UpdateLeekHandler;
+import com.leekwars.api.endpoints.leekscriptAis.AddLeekscriptAiHandler;
+import com.leekwars.api.endpoints.leekscriptAis.AnalyzeLeekscriptAiFileHandler;
+import com.leekwars.api.endpoints.leekscriptAis.GetAllLeekscriptAisHandler;
 import com.leekwars.api.endpoints.leekscriptAis.GetLeekscriptAiByIdHandler;
 import com.leekwars.api.endpoints.poolFights.duel.CountAllDuelPoolFightsByPoolRunIdHandler;
 import com.leekwars.api.endpoints.poolFights.duel.CountAllDuelPoolFightsHandler;
@@ -176,8 +179,13 @@ public class HttpApi {
                 new MongoHandler(mongoClientProvider, new GetLeekByIdHandler(leekService))));
 
         // Leekscript AI endpoints
+        server.createContext("/api/leekscript-ais/get-all", new LoggingHandler(
+                new MongoHandler(mongoClientProvider, new GetAllLeekscriptAisHandler(leekScriptAiService))));
         server.createContext("/api/leekscript-ais/get-by-merged-code-hash", new LoggingHandler(
                 new MongoHandler(mongoClientProvider, new GetLeekscriptAiByIdHandler(leekScriptAiService))));
+        server.createContext("/api/leekscript-ais/analyze-file", new LoggingHandler(new AnalyzeLeekscriptAiFileHandler(generator)));
+        server.createContext("/api/leekscript-ais/add", new LoggingHandler(
+                new MongoHandler(mongoClientProvider, new AddLeekscriptAiHandler(generator, leekScriptAiService))));
 
         // File browsing endpoints
         server.createContext("/api/file/list", new LoggingHandler(new FileListHandler()));
