@@ -97,7 +97,7 @@ public class AddLeekscriptAiHandler implements HttpHandler {
 
                 JSONObject response = new JSONObject();
                 response.put("success", false);
-                response.put("id", leekSnapshotAI.id);
+                response.put("mergedCodeHash", leekSnapshotAI.mergedCode.hash);
                 response.put("message", "AI snapshot already exists");
 
                 RequestUtils.sendJsonResponse(exchange, 409, response);
