@@ -119,6 +119,10 @@ public class StartPoolDuelHandler implements HttpHandler {
             }
 
             PoolRunDuel poolRunDuel = new PoolRunDuel(pool, poolRunLeeks);
+
+            if (pool.resetElo) {
+                poolRunDuel.resetLeeksElo();
+            }
             // poolRunDuel.SetLeeks(poolRunLeeks);
 
             String newRunId = poolRunDuelService.addPoolRunDuel(poolRunDuel);

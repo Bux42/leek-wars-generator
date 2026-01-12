@@ -22,11 +22,6 @@ public class PoolRunDuel extends PoolRunBase {
 
     public void SetLeeks(List<PoolRunLeek> leeks) {
         this.leeks = leeks;
-
-        // reset elo of all leeks if needed
-        if (this.pool.resetElo) {
-            resetLeeksElo();
-        }
     }
 
     public void resetLeeksElo() {
