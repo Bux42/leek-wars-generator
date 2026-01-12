@@ -103,8 +103,8 @@ public class PoolManager {
                         fightCount++;
 
                         // early stop if pool is no longer running
-                        if (!isPoolRunning(poolRunDuel.pool.id)) {
-                            System.out.println("Pool " + poolRunDuel.pool.id + " has been stopped. Exiting fight loop.");
+                        if (!isPoolRunning(poolRunDuel.id)) {
+                            System.out.println("Pool " + poolRunDuel.id + " has been stopped. Exiting fight loop.");
                             poolRunDuel.stop(true);
 
                             // update pool run duel status in database
@@ -115,7 +115,7 @@ public class PoolManager {
                             }
 
                             // remove pool from runningPools map
-                            runningPools.remove(poolRunDuel.pool.id);
+                            runningPools.remove(poolRunDuel.id);
                             return;
                         }
                     }
@@ -137,36 +137,35 @@ public class PoolManager {
             }
 
             // remove pool from runningPools map
-            runningPools.remove(poolRunDuel.pool.id);
-            System.out.println("PoolRunDuel " + poolRunDuel.pool.id + " completed all fights and stopped.");
+            runningPools.remove(poolRunDuel.id);
+            System.out.println("PoolRunDuel " + poolRunDuel.id + " completed all fights and stopped.");
         }, 0, TimeUnit.SECONDS);
 
-        runningPools.put(poolRunDuel.pool.id, fightRunner);
-
+        runningPools.put(poolRunDuel.id, fightRunner);
         return true;
     }
 
-    public boolean poolIsAlreadyRunning(String poolId) {
-        return runningPools.containsKey(poolId);
+    public boolean poolIsAlreadyRunning(String poolRunId) {
+        return runningPools.containsKey(poolRunId);
     }
 
 
     /**
-     * Stop a running pool
+     * Stop a running pool run
      * 
-     * @param poolId
+     * @param poolRunId
      *            The ID of the pool to stop
      * @return true if pool was stopped, false if pool was not running
      */
-    public boolean stopPool(String poolId) {
-        ScheduledFuture<?> future = runningPools.remove(poolId);
+    public boolean stopPool(String poolRunId) {
+        ScheduledFuture<?> future = runningPools.remove(poolRunId);
 
         if (future != null) {
             future.cancel(false);
-            System.out.println("Stopped pool: " + poolId);
+            System.out.println("Stopped pool: " + poolRunId);
             return true;
         } else {
-            System.out.println("Pool " + poolId + " is not running");
+            System.out.println("Pool " + poolRunId + " is not running");
             return false;
         }
     }
@@ -187,8 +186,8 @@ public class PoolManager {
      */
     public void stopAllPools() {
         System.out.println("Stopping all running pools...");
-        for (String poolId : runningPools.keySet()) {
-            stopPool(poolId);
+        for (String poolRunId : runningPools.keySet()) {
+            stopPool(poolRunId);
         }
     }
 
