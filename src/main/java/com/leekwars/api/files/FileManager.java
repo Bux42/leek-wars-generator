@@ -21,6 +21,13 @@ public class FileManager {
     public FileManager() {
         this.rootPath = System.getProperty("user.dir");
         this.currentPath = this.rootPath;
+
+        // Ensure that .merged_ai directory exists
+        try {
+            createDirectory(".merged_ais");
+        } catch (IOException e) {
+            System.err.println("Failed to create .merged_ai directory: " + e.getMessage());
+        }
     }
     
     /**
@@ -253,6 +260,58 @@ public class FileManager {
         }
         
         return Files.readAllBytes(file.toPath());
+    }
+    
+    /**
+     * Write text content to a file
+     * Creates parent directories if they don't exist
+     */
+    public void writeFile(String relativePath, String content) throws IOException {
+        File file = new File(currentPath, relativePath);
+        
+        // Security check: ensure file is within root
+        String canonical = file.getCanonicalPath();
+        String rootCanonical = new File(rootPath).getCanonicalPath();
+        
+        if (!canonical.startsWith(rootCanonical)) {
+            throw new SecurityException("Access denied: file is outside root directory");
+        }
+        
+        // Create parent directories if they don't exist
+        File parentDir = file.getParentFile();
+        if (parentDir != null && !parentDir.exists()) {
+            if (!parentDir.mkdirs()) {
+                throw new IOException("Failed to create parent directories");
+            }
+        }
+        
+        // Write content to file
+        Files.write(file.toPath(), content.getBytes());
+    }
+    
+    /**
+     * Create a directory if it does not exist
+     * Creates parent directories as needed
+     * Returns true if directory was created or already exists
+     */
+    public boolean createDirectory(String relativePath) throws IOException {
+        File directory = new File(currentPath, relativePath);
+        
+        // Security check: ensure directory is within root
+        String canonical = directory.getCanonicalPath();
+        String rootCanonical = new File(rootPath).getCanonicalPath();
+        
+        if (!canonical.startsWith(rootCanonical)) {
+            throw new SecurityException("Access denied: directory is outside root directory");
+        }
+        
+        // If already exists and is a directory, return true
+        if (directory.exists()) {
+            return directory.isDirectory();
+        }
+        
+        // Create directory and all necessary parent directories
+        return directory.mkdirs();
     }
     
     /**

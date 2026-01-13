@@ -17,6 +17,7 @@ import com.leekwars.pool.code.LeekscriptAI;
 import com.leekwars.pool.code.MergedCode;
 import com.leekwars.pool.leek.LeekManager;
 import com.leekwars.pool.leek.PoolRunLeek;
+import com.leekwars.api.files.FileManager;
 import com.leekwars.api.mongo.services.LeekScriptAiService;
 
 public class AddLeekscriptAiHandler implements HttpHandler {
@@ -79,6 +80,10 @@ public class AddLeekscriptAiHandler implements HttpHandler {
             // we don't have this AI saved yet, create a new snapshot, with git info if
             // possible
             if (leekSnapshotAI == null) {
+                // save merged AI code to .merged_ais folder
+                FileManager fileManager = new FileManager();
+                fileManager.writeFile(".merged_ais/" + aiMergedCode.hash + ".leek", aiMergedCode.code);
+                
                 // try and populate git info from the AI file if possible
                 GitInfos gitInfos = LeekManager.TryGetGitInfos(aiFilePath);
 

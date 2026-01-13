@@ -11,3 +11,4 @@ build/
 bin/
 .vscode
 user-code/
+.merged_ais/
