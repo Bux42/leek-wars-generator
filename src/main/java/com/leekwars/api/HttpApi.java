@@ -171,7 +171,7 @@ public class HttpApi {
         server.createContext("/api/leeks/get-all", new LoggingHandler(
                 new MongoHandler(mongoClientProvider, new GetAllLeeksHandler(leekService))));
         server.createContext("/api/leeks/add", new LoggingHandler(
-                new MongoHandler(mongoClientProvider, new AddLeekHandler(leekService))));
+                new MongoHandler(mongoClientProvider, new AddLeekHandler(leekService, leekScriptAiService))));
         server.createContext("/api/leeks/delete", new LoggingHandler(
                 new MongoHandler(mongoClientProvider, new DeleteLeekHandler(leekService))));
         server.createContext("/api/leeks/update", new LoggingHandler(

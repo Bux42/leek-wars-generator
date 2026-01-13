@@ -12,7 +12,7 @@ import com.leekwars.pool.entity.stats.EntityStats;
 public class Leek extends Entity {
     public String id;
     public int elo = 100;
-    public String aiFilePath = "Basic.leek";
+    public String mergedCodeHash = null;
     public String imageName = "leekwars/image/leek/leek1_front_green";
 
     public Leek() {
@@ -53,8 +53,8 @@ public class Leek extends Entity {
             leek.elo = json.getIntValue("elo");
         }
         
-        if (json.containsKey("aiFilePath")) {
-            leek.aiFilePath = json.getString("aiFilePath");
+        if (json.containsKey("mergedCodeHash")) {
+            leek.mergedCodeHash = json.getString("mergedCodeHash");
         }
         
         if (json.containsKey("imageName")) {
@@ -69,7 +69,8 @@ public class Leek extends Entity {
         entity.id = id;
         entity.name = name;
 
-        String relativeAiFilePath = LeekManager.GetSanitizedRelativeAiFilePath(aiFilePath);
+        String mergedCodePath = ".merged_ais/" + mergedCodeHash + ".leek";
+        String relativeAiFilePath = LeekManager.GetSanitizedRelativeAiFilePath(mergedCodePath);
         entity.ai = relativeAiFilePath; 
 
         entity.farmer = farmer_id;

@@ -80,41 +80,22 @@ public class StartPoolDuelHandler implements HttpHandler {
             List<PoolRunLeek> poolRunLeeks = new ArrayList<>();
 
             for (Leek leek : poolDuelLeeks) {
-                AIFile aiFile = LeekManager.ResolveAIFile(leek.aiFilePath, generator);
-
-                if (aiFile == null) {
-                    RequestUtils.sendResponse(exchange, 404, "AI file not found for leek ID " + leek.id);
+                // check if we have a snapshot of this leek AI
+                if (!leekScriptAiService.leekscriptAiExistsByMergedAiCodeHash(leek.mergedCodeHash)) {
+                    RequestUtils.sendResponse(exchange, 400, "Leek AI snapshot not found for leek ID " + leek.id);
                     return;
                 }
 
-                // get merged AI code and its hash
-                MergedCode aiMergedCode = LeekManager.GetLeekScriptMergedCode(aiFile, generator);
-
-                if (aiMergedCode == null) {
-                    RequestUtils.sendResponse(exchange, 500, "Failed to get merged AI code for leek ID " + leek.id);
+                // check if we have the AI file
+                AIFile aiFile = LeekManager.ResolveAIFile(".merged_ais/" + leek.mergedCodeHash + ".leek", generator);
+                if (aiFile == null) {
+                    RequestUtils.sendResponse(exchange, 404, "AI file not found for leek ID " + leek.id + " with mergedCodeHash " + leek.mergedCodeHash);
                     return;
                 }
 
                 // Create new leek snapshot with merged AI code hash
-                PoolRunLeek poolRunLeek = new PoolRunLeek(leek, aiMergedCode.hash);
+                PoolRunLeek poolRunLeek = new PoolRunLeek(leek);
 
-                // check if we already have a snapshot of this AI saved
-                LeekscriptAI leekSnapshotAI = leekScriptAiService.getLeekscriptAiByMergedAiCodeHash(aiMergedCode.hash, true);
-
-                // we don't have this AI saved yet, create a new snapshot, with git info if
-                // possible
-                if (leekSnapshotAI == null) {
-                    // try and populate git info from the AI file if possible
-                    GitInfos gitInfos = LeekManager.TryGetGitInfos(leek.aiFilePath);
-
-                    leekSnapshotAI = new LeekscriptAI(aiMergedCode, gitInfos);
-
-                    String newSnapshotId = leekScriptAiService.addLeekscriptAi(leekSnapshotAI);
-                    System.out.println("StartPoolDuelHandler: Created new AI snapshot with ID " + newSnapshotId + " for leek ID " + leek.id);
-                }
-
-                // PoolRunLeek poolRunLeek = LeekManager.CreatePoolRunLeek(leek,
-                // poolManager.generator, mongoDbManager);
                 poolRunLeeks.add(poolRunLeek);
             }
 
@@ -123,7 +104,6 @@ public class StartPoolDuelHandler implements HttpHandler {
             if (pool.resetElo) {
                 poolRunDuel.resetLeeksElo();
             }
-            // poolRunDuel.SetLeeks(poolRunLeeks);
 
             String newRunId = poolRunDuelService.addPoolRunDuel(poolRunDuel);
             poolRunDuel.id = newRunId;

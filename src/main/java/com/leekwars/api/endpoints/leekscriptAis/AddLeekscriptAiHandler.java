@@ -3,9 +3,6 @@ package com.leekwars.api.endpoints.leekscriptAis;
 import com.sun.net.httpserver.HttpHandler;
 
 import leekscript.compiler.AIFile;
-import leekscript.compiler.IACompiler.AnalyzeResult;
-import leekscript.compiler.LeekScript;
-
 import com.sun.net.httpserver.HttpExchange;
 
 import java.io.IOException;
@@ -16,7 +13,6 @@ import com.leekwars.pool.code.GitInfos;
 import com.leekwars.pool.code.LeekscriptAI;
 import com.leekwars.pool.code.MergedCode;
 import com.leekwars.pool.leek.LeekManager;
-import com.leekwars.pool.leek.PoolRunLeek;
 import com.leekwars.api.files.FileManager;
 import com.leekwars.api.mongo.services.LeekScriptAiService;
 

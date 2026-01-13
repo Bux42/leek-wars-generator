@@ -38,6 +38,11 @@ public class LeekscriptAiRepository {
         return result.getModifiedCount() > 0;
     }
 
+    public boolean existsByMergedAiCodeHash(String mergedAiCodeHash) {
+        Document doc = leekscriptAis.find(new Document("mergedCode.hash", mergedAiCodeHash)).first();
+        return doc != null;
+    }
+
     public boolean delete(String id) {
         var result = leekscriptAis.deleteOne(new Document("_id", id));
         return result.getDeletedCount() > 0;

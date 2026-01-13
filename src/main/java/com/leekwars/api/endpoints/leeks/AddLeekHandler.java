@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.leekwars.api.mongo.services.LeekScriptAiService;
 import com.leekwars.api.mongo.services.LeekService;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -12,9 +13,11 @@ import com.leekwars.pool.leek.Leek;
 
 public class AddLeekHandler implements HttpHandler {
     private final LeekService leekService;
+    private final LeekScriptAiService leekScriptAiService;
 
-    public AddLeekHandler(LeekService leekService) {
+    public AddLeekHandler(LeekService leekService, LeekScriptAiService leekScriptAiService) {
         this.leekService = leekService;
+        this.leekScriptAiService = leekScriptAiService;
     }
 
     @Override
@@ -28,6 +31,16 @@ public class AddLeekHandler implements HttpHandler {
 
             // Deserialize JSON into Leek object using fromJson method
             Leek leek = Leek.fromJson(json);
+
+            // check if we already have a snapshot of this AI saved
+            if (!leekScriptAiService.leekscriptAiExistsByMergedAiCodeHash(leek.mergedCodeHash)) {
+                // error, the AI snapshot with this mergedCodeHash does not exist
+                System.out.println("AddLeekscriptAiHandler: AI snapshot not found for mergedCodeHash: " + leek.mergedCodeHash);
+
+                // repond with 404 ai not found
+                RequestUtils.sendResponse(exchange, 404, "AI snapshot not found for mergedCodeHash: " + leek.mergedCodeHash);
+                return;
+            }
 
             // Validate required fields
             if (leek.name == null || leek.name.isEmpty()) {

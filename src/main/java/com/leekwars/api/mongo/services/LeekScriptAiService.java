@@ -76,4 +76,8 @@ public class LeekScriptAiService {
         // Return the generated ID
         return aiData.getObjectId("_id").toString();
     }
+
+    public boolean leekscriptAiExistsByMergedAiCodeHash(String mergedAiCodeHash) {
+        return this.leekscriptAis.existsByMergedAiCodeHash(mergedAiCodeHash);
+    }
 }

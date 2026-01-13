@@ -33,7 +33,9 @@ public class LeekManager {
 
     public static MergedCode GetLeekScriptMergedCode(AIFile aiFile, Generator generator) {
         // get merged AI full code
+        generator.setCache(false);
         String mergedAICode = generator.downloadAI(aiFile);
+        generator.setCache(true);
 
         if (mergedAICode == null) {
             System.out.println("LeekManager: Failed to get merged AI code for AI path: " + aiFile.getFolder());
@@ -62,7 +64,7 @@ public class LeekManager {
 
     public static String GetSanitizedAiFilePath(PoolRunLeek poolRunLeek) {
         // Sanitize / Reconstruct the AI file path
-        String sanitizedAiFilePath = FileManager.sanitizeAbsoluteFilePath(poolRunLeek.aiFilePath);
+        String sanitizedAiFilePath = FileManager.sanitizeAbsoluteFilePath(poolRunLeek.mergedCodeHash);
         return sanitizedAiFilePath;
     }
 
