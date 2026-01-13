@@ -20,7 +20,8 @@ import com.leekwars.api.endpoints.leeks.UpdateLeekHandler;
 import com.leekwars.api.endpoints.leekscriptAis.AddLeekscriptAiHandler;
 import com.leekwars.api.endpoints.leekscriptAis.AnalyzeLeekscriptAiFileHandler;
 import com.leekwars.api.endpoints.leekscriptAis.GetAllLeekscriptAisHandler;
-import com.leekwars.api.endpoints.leekscriptAis.GetLeekscriptAiByIdHandler;
+import com.leekwars.api.endpoints.leekscriptAis.GetGitDiffByMergedCodeHashHandler;
+import com.leekwars.api.endpoints.leekscriptAis.GetLeekscriptAiByMergedCodeHashHandler;
 import com.leekwars.api.endpoints.poolFights.duel.CountAllDuelPoolFightsByPoolRunIdHandler;
 import com.leekwars.api.endpoints.poolFights.duel.CountAllDuelPoolFightsHandler;
 import com.leekwars.api.endpoints.poolFights.duel.GetDuelFightsByPoolRunIdHandler;
@@ -165,7 +166,7 @@ public class HttpApi {
                 new MongoHandler(mongoClientProvider, new CountAllDuelPoolFightsByPoolRunIdHandler(poolFightDuelService))));
         server.createContext("/api/pool-fights/duel/get-by-pool-run-id", new LoggingHandler(
                 new MongoHandler(mongoClientProvider, new GetDuelFightsByPoolRunIdHandler(poolFightDuelService))));
-                
+
         // Leeks endpoints
         server.createContext("/api/leeks/get-all", new LoggingHandler(
                 new MongoHandler(mongoClientProvider, new GetAllLeeksHandler(leekService))));
@@ -182,7 +183,9 @@ public class HttpApi {
         server.createContext("/api/leekscript-ais/get-all", new LoggingHandler(
                 new MongoHandler(mongoClientProvider, new GetAllLeekscriptAisHandler(leekScriptAiService))));
         server.createContext("/api/leekscript-ais/get-by-merged-code-hash", new LoggingHandler(
-                new MongoHandler(mongoClientProvider, new GetLeekscriptAiByIdHandler(leekScriptAiService))));
+                new MongoHandler(mongoClientProvider, new GetLeekscriptAiByMergedCodeHashHandler(leekScriptAiService))));
+        server.createContext("/api/leekscript-ais/get-git-diff-by-merged-code-hash", new LoggingHandler(
+                new MongoHandler(mongoClientProvider, new GetGitDiffByMergedCodeHashHandler(leekScriptAiService))));
         server.createContext("/api/leekscript-ais/analyze-file", new LoggingHandler(new AnalyzeLeekscriptAiFileHandler(generator)));
         server.createContext("/api/leekscript-ais/add", new LoggingHandler(
                 new MongoHandler(mongoClientProvider, new AddLeekscriptAiHandler(generator, leekScriptAiService))));

@@ -1,5 +1,4 @@
 package com.leekwars.api.endpoints.leekscriptAis;
-
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpExchange;
 
@@ -9,13 +8,14 @@ import com.leekwars.api.mongo.services.LeekScriptAiService;
 import com.leekwars.api.utils.RequestUtils;
 import com.leekwars.pool.code.LeekscriptAI;
 
-public class GetLeekscriptAiByIdHandler implements HttpHandler {
+public class GetGitDiffByMergedCodeHashHandler  implements HttpHandler {
     private final LeekScriptAiService leekScriptAiService;
 
-    public GetLeekscriptAiByIdHandler(LeekScriptAiService leekScriptAiService) {
+    public GetGitDiffByMergedCodeHashHandler(LeekScriptAiService leekScriptAiService) {
         this.leekScriptAiService = leekScriptAiService;
     }
 
+    
     @Override
     public void handle(HttpExchange exchange) throws IOException {
         if (!"GET".equals(exchange.getRequestMethod())) {
@@ -42,16 +42,14 @@ public class GetLeekscriptAiByIdHandler implements HttpHandler {
                 return;
             }
 
-            JSONObject response = new JSONObject();
-
-            response.put("codeSnapshot", leekscriptAi);
-            response.put("success", true);
-
-            RequestUtils.sendJsonResponse(exchange, 200, response);
+            String response = leekscriptAi.gitInfos.diffOutput != null ? leekscriptAi.gitInfos.diffOutput : "";
+            
+            RequestUtils.sendResponse(exchange, 200, response);
         } catch (Exception e) {
-            System.err.println("Error in GetLeekscriptAiByIdHandler: " + e.getMessage());
+            System.err.println("Error in GetGitDiffByMergedCodeHashHandler: " + e.getMessage());
             e.printStackTrace();
             RequestUtils.sendResponse(exchange, 500, "Internal server error: " + e.getMessage());
         }
     }
+    
 }
