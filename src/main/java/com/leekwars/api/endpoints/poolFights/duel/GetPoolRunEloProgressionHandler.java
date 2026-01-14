@@ -8,14 +8,18 @@ import java.util.List;
 
 import com.alibaba.fastjson.JSONObject;
 import com.leekwars.api.mongo.services.PoolFightDuelService;
+import com.leekwars.api.mongo.services.PoolRunDuelService;
 import com.leekwars.api.utils.RequestUtils;
-import com.leekwars.pool.run.fight.categories.PoolFightDuel;
+import com.leekwars.pool.run.categories.PoolRunDuel;
+import com.leekwars.pool.run.fight.talent.TalentDataPoint;
 
-public class GetDuelFightsByPoolRunIdHandler implements HttpHandler {
+public class GetPoolRunEloProgressionHandler implements HttpHandler {
     private final PoolFightDuelService poolFightDuelService;
+    private final PoolRunDuelService poolRunDuelService;
 
-    public GetDuelFightsByPoolRunIdHandler(PoolFightDuelService poolFightDuelService) {
+    public GetPoolRunEloProgressionHandler(PoolFightDuelService poolFightDuelService, PoolRunDuelService poolRunDuelService) {
         this.poolFightDuelService = poolFightDuelService;
+        this.poolRunDuelService = poolRunDuelService;
     }
 
     @Override
@@ -34,10 +38,12 @@ public class GetDuelFightsByPoolRunIdHandler implements HttpHandler {
                 return;
             }
 
-            List<PoolFightDuel> fights = poolFightDuelService.getAllByPoolRunId(poolRunId);
+            PoolRunDuel poolRunDuel = poolRunDuelService.getPoolRunDuelById(poolRunId);
+
+            List<TalentDataPoint> talentDataPoints = poolFightDuelService.getEloProgressionByPoolRunId(poolRunId, poolRunDuel.leeks);
 
             JSONObject response = new JSONObject();
-            response.put("fights", fights);
+            response.put("eloProgression", talentDataPoints);
             response.put("success", true);
 
             RequestUtils.sendJsonResponse(exchange, 200, response);
@@ -47,4 +53,5 @@ public class GetDuelFightsByPoolRunIdHandler implements HttpHandler {
             RequestUtils.sendResponse(exchange, 500, "Internal server error: " + e.getMessage());
         }
     }
+
 }
