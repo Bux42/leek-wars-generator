@@ -11,6 +11,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import com.leekwars.generator.Data;
 import com.leekwars.generator.Generator;
 import com.leekwars.generator.Log;
 import com.leekwars.generator.outcome.Outcome;
@@ -33,11 +34,15 @@ public class Socket {
     private static final JsonMapper JSON = new JsonMapper();
 
     public static void main(String[] args) {
-        String host = "0.0.0.0";
-        int port = 9090;
+
         boolean nocache = false;
         boolean db_resolver = false;
         boolean verbose = false;
+
+        String host = "0.0.0.0";
+        int port = 9090;
+
+        boolean download_assets = false;
 
         for (String arg : args) {
             if (arg.startsWith("--")) {
@@ -51,6 +56,8 @@ public class Socket {
                     case "verbose":
                         verbose = true;
                         break;
+                    case "download_assets":
+                        download_assets = true;
                 }
                 if (arg.startsWith("--port=")) {
                     port = Integer.parseInt(arg.substring("--port=".length()));
@@ -58,6 +65,10 @@ public class Socket {
                     host = arg.substring("--host=".length());
                 }
             }
+        }
+
+        if (download_assets) {
+            Data.checkData("https://leekwars.com/api/");
         }
 
         Log.enable(verbose);
