@@ -1,7 +1,5 @@
 package com.leekwars.generator.effect;
 
-import java.util.List;
-
 import com.leekwars.generator.action.ActionAddEffect;
 import com.leekwars.generator.action.ActionStackEffect;
 import com.leekwars.generator.attack.Attack;
@@ -74,6 +72,7 @@ public abstract class Effect implements Cloneable {
 	public final static int TYPE_CRITICAL_TO_HEAL = 58;
 	public final static int TYPE_ADD_STATE = 59;
 	public final static int TYPE_TOTAL_DEBUFF = 60;
+	public final static int TYPE_STEAL_LIFE = 61;
 
 	// Target filters constants
 	public final static int TARGET_ENEMIES = 1; // Enemies
@@ -154,6 +153,7 @@ public abstract class Effect implements Cloneable {
 		null, // 58
 		EffectAddState.class, // 59
 		EffectTotalDebuff.class, // 60
+		EffectStealLife.class, // 61
 	};
 
 	// Effect characteristics
@@ -213,9 +213,9 @@ public abstract class Effect implements Cloneable {
 		// Remove previous effect of the same type (that is not stackable)
 		if (effect.getTurns() != 0) {
 			if (!stackable) {
-				List<Effect> effects = target.getEffects();
+				var effects = target.getEffects();
 				for (int i = 0; i < effects.size(); ++i) {
-					Effect e = effects.get(i);
+					var e = effects.get(i);
 					if (e.getId() == id && (e.attack == null ? attack == null : attack != null && e.attack.getItemId() == attack.getItemId())) {
 						e.getCaster().removeLaunchedEffect(e);
 						target.removeEffect(e);
@@ -229,7 +229,7 @@ public abstract class Effect implements Cloneable {
 
 		// Stack to previous item with the same characteristics
 		if (effect.value > 0) {
-			for (Effect e : target.getEffects()) {
+			for (var e : target.getEffects()) {
 				if ((e.attack == null ? attack == null : attack != null && e.attack.getItemId() == attack.getItemId()) && e.getId() == id && e.turns == turns && e.caster == caster) {
 					e.mergeWith(effect);
 					state.getActions().log(new ActionStackEffect(e.getLogID(), effect.value));

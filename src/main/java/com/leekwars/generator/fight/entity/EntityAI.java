@@ -113,10 +113,13 @@ public class EntityAI extends AI {
 		try {
 			if (entityInfo.ai_path != null) {
 				file = LeekScript.getNativeFileSystem().getRoot().resolve(entityInfo.ai_path);
-				file.setVersion(entityInfo.ai_version);
+				file.setVersion(entityInfo.ai_version, entityInfo.ai_strict);
 			} else {
 				// Accès au dossier ?
 				var folder = LeekScript.getFileSystem().getFolderById(entityInfo.ai_folder, entityInfo.aiOwner);
+				if (folder == null) {
+					throw new FileNotFoundException();
+				}
 				file = folder.resolve(entityInfo.ai);
 			}
 		} catch (FileNotFoundException e) {
@@ -160,9 +163,9 @@ public class EntityAI extends AI {
 		} catch (LeekScriptException e) {
 			// Java compilation error : server error
 			if (e.getType() == Error.CODE_TOO_LARGE) {
-				((LeekLog) entity.getLogs()).addSystemLog(LeekLog.SERROR, Error.CODE_TOO_LARGE);
+				((LeekLog) entity.getLogs()).addSystemLog(LeekLog.SERROR, Error.CODE_TOO_LARGE, new String[] { e.getLocation() });
 			} else if (e.getType() == Error.CODE_TOO_LARGE_FUNCTION) {
-				((LeekLog) entity.getLogs()).addSystemLog(LeekLog.SERROR, Error.CODE_TOO_LARGE_FUNCTION);
+				((LeekLog) entity.getLogs()).addSystemLog(LeekLog.SERROR, Error.CODE_TOO_LARGE_FUNCTION, new String[] { e.getLocation() });
 			} else {
 				generator.exception(e, (Fight) entity.getFight(), entity.getFarmer(), file);
 				((LeekLog) entity.getLogs()).addSystemLog(LeekLog.SERROR, Error.COMPILE_JAVA, new String[] { e.getLocation() });
@@ -269,6 +272,7 @@ public class EntityAI extends AI {
 
 		try {
 
+			resetCounter();
 			mEntity = mInitialEntity;
 			if (!staticInitialized) {
 				staticInit();
@@ -352,6 +356,7 @@ public class EntityAI extends AI {
 
 		} catch (Throwable e) { // Autre erreur, là c'est pas l'utilisateur
 
+			System.out.println("[EntityAI] Unknown error (Throwable)");
 			e.printStackTrace(System.out);
 			fight.getState().statistics.error(mEntity);
 			fight.log(new ActionAIError(mEntity));

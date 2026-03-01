@@ -11,8 +11,9 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.TreeMap;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
+import com.leekwars.generator.util.Json;
 import com.leekwars.generator.action.Action;
 import com.leekwars.generator.action.ActionChestOpened;
 import com.leekwars.generator.action.ActionEndTurn;
@@ -134,7 +135,7 @@ public class State {
 	private String mLeekDatas = "";
 	private int context;
 	private int type;
-	public JSONObject custom_map = null;
+	public ObjectNode custom_map = null;
 	public StatisticsManager statistics;
 	private RegisterManager registerManager;
 	public long executionTime = 0;
@@ -262,7 +263,7 @@ public class State {
 		return map;
 	}
 
-	public void setCustomMap(JSONObject map) {
+	public void setCustomMap(ObjectNode map) {
 		custom_map = map;
 	}
 
@@ -383,22 +384,22 @@ public class State {
 	public void init() {
 
 		// Create level/skin list
-		JSONObject list = new JSONObject();
+		ObjectNode list = Json.createObject();
 
 		for (Entity l : mEntities.values()) {
 
-			JSONArray data = new JSONArray();
+			ArrayNode data = Json.createArray();
 			data.add(l.getLevel());
 			data.add(l.getSkin());
 
 			if (l.getHat() > 0) {
 				data.add(l.getHat());
 			} else {
-				data.add(null);
+				data.addNull();
 			}
-			list.put(String.valueOf(l.getId()), data);
+			list.set(String.valueOf(l.getId()), data);
 		}
-		mLeekDatas = list.toJSONString();
+		mLeekDatas = list.toString();
 
 		int obstacle_count = getRandom().getInt(30, 80);
 
@@ -1060,8 +1061,8 @@ public class State {
 		return teams;
 	}
 
-	public JSONObject getDeadReport() {
-		JSONObject dead = new JSONObject();
+	public ObjectNode getDeadReport() {
+		ObjectNode dead = Json.createObject();
 		for (Team team : teams) {
 			for (Entity entity : team.getEntities()) {
 				dead.put(String.valueOf(entity.getId()), entity.isDead());
@@ -1077,37 +1078,20 @@ public class State {
 		this.type = type;
 	}
 
-	private double getMaxDeadRatio() {
+	/**
+	 * Calcule la progression du combat basée sur les dégâts infligés aux équipes.
+	 * Chaque équipe contribue à 1/(n-1) de la progression (n = nombre d'équipes).
+	 * La progression d'une équipe est son ratio de vie perdue.
+	 */
+	private double getFactionProgress() {
+		int teamCount = teams.size();
+		if (teamCount <= 1) return 0;
 
-		if (this.type == TYPE_BATTLE_ROYALE) {
-			double dead = 0;
-			for (Team team : teams) {
-				if (team.isDead()) {
-					dead++;
-				}
-			}
-			return dead / teams.size();
-		}
-
-		double max = 0;
+		double progress = 0;
 		for (Team team : teams) {
-			double ratio = team.getDeadRatio();
-			if (ratio > max) max = ratio;
+			progress += team.getLifeRatio();
 		}
-		return max;
-	}
-	private double getMaxLifeRatio() {
-
-		if (this.type == TYPE_BATTLE_ROYALE) {
-			return 0; // For BR, don't count this value
-		}
-
-		double max = 0;
-		for (Team team : teams) {
-			double ratio = 1 - team.getLifeRatio();
-			if (ratio > max) max = ratio;
-		}
-		return max;
+		return 1 - progress / teamCount;
 	}
 
 	public double getProgress() {
@@ -1115,14 +1099,12 @@ public class State {
 
 		int entityCount = this.order.getEntities().size();
 
-		// Nombre d'entités mortes
-		double d = getMaxDeadRatio();
+		// Progression basée sur les dégâts aux factions (équipes + coffres)
+		double f = getFactionProgress();
 		// Nombre de "tours d'entité", racine carrée
 		double t = Math.min(1, Math.pow((double) (this.getTurn() * entityCount + this.order.getPosition()) / (MAX_TURNS * entityCount), 0.5));
-		// Ratio de vie restante
-		double l = getMaxLifeRatio();
 
-		return Math.max(t, Math.max(d, l));
+		return Math.max(t, f);
 	}
 
 	public void seed(int seed) {
