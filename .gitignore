@@ -3,6 +3,7 @@
 /ai/
 leekscript.jar
 generator.jar
+generator_socket.jar
 .gradle/
 .classpath
 .project
