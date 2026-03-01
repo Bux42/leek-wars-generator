@@ -1,3 +1,4 @@
 [submodule "leekscript"]
 	path = leekscript
-	url = git@github.com:leek-wars/leekscript.git
+	url = https://github.com/Bux42/leekscript-local.git
+	branch = leek-wars-tools
