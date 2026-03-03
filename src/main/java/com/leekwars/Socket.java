@@ -83,6 +83,8 @@ public class Socket {
         Generator generator = new Generator();
         generator.setCache(!nocache);
 
+        System.out.println("Starting server on " + host + ":" + port);
+
         startServer(host, port, generator);
     }
 
