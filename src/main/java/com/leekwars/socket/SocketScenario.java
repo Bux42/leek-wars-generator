@@ -85,7 +85,9 @@ public class SocketScenario {
                         if (!entityJson.isObject()) {
                             continue;
                         }
-                        teamEntities.add(new EntityInfo((ObjectNode) entityJson));
+                        EntityInfo entity = new EntityInfo((ObjectNode) entityJson);
+                        entity.skin = entityJson.path("skin").intValue();
+                        teamEntities.add(entity);
                     }
                 }
                 scenario.entities.add(teamEntities);
