@@ -6,6 +6,7 @@ import com.leekwars.generator.scenario.EntityInfo;
 import com.leekwars.generator.scenario.FarmerInfo;
 import com.leekwars.generator.scenario.Scenario;
 import com.leekwars.generator.scenario.TeamInfo;
+import com.leekwars.generator.turret.Turret;
 
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.ArrayNode;
@@ -86,7 +87,21 @@ public class SocketScenario {
                             continue;
                         }
                         EntityInfo entity = new EntityInfo((ObjectNode) entityJson);
-                        entity.skin = entityJson.path("skin").intValue();
+
+                        // set skin if defined
+                        if (entityJson.has("skin")) {
+                            entity.skin = entityJson.path("skin").intValue();
+                        }
+                        if (entityJson.has("type")) {
+                            entity.type = entityJson.path("type").intValue();
+
+                            if (entity.type == 2) { // turret
+                                entity.customClass = Turret.class;
+                            }
+                        }
+                        if (entityJson.has("cellPos")) {
+                            entity.cell = entityJson.path("cellPos").intValue();
+                        }
                         teamEntities.add(entity);
                     }
                 }
