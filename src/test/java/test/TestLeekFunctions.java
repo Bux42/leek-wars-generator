@@ -81,17 +81,17 @@ public class TestLeekFunctions {
 
 		// Test getForce
 		codes.add("getForce()");
-		values.add(mLeek1.getStat(Entity.CHARAC_STRENGTH));
+		values.add(mLeek1.getStat(Entity.STAT_STRENGTH));
 		codes.add("getForce(" + mLeek2.getFId() + ")");
-		values.add(mLeek2.getStat(Entity.CHARAC_STRENGTH));
+		values.add(mLeek2.getStat(Entity.STAT_STRENGTH));
 		codes.add("getForce(-1)");
 		values.add(null);
 
 		// Test getAgility
 		codes.add("getAgility()");
-		values.add(mLeek1.getStat(Entity.CHARAC_AGILITY));
+		values.add(mLeek1.getStat(Entity.STAT_AGILITY));
 		codes.add("getAgility(" + mLeek2.getFId() + ")");
-		values.add(mLeek2.getStat(Entity.CHARAC_AGILITY));
+		values.add(mLeek2.getStat(Entity.STAT_AGILITY));
 		codes.add("getAgility(-1)");
 		values.add(null);
 
@@ -137,9 +137,9 @@ public class TestLeekFunctions {
 
 		// Test getTotalLife
 		codes.add("getTotalLife()");
-		values.add(mLeek1.getStat(Entity.CHARAC_LIFE));
+		values.add(mLeek1.getStat(Entity.STAT_LIFE));
 		codes.add("getTotalLife(" + mLeek2.getFId() + ")");
-		values.add(mLeek2.getStat(Entity.CHARAC_LIFE));
+		values.add(mLeek2.getStat(Entity.STAT_LIFE));
 		codes.add("getTotalLife(-1)");
 		values.add(null);
 
@@ -175,8 +175,8 @@ public class TestLeekFunctions {
 		codes.add("isAlive(-1)");
 		values.add(false);
 
-		// Test getLeek
-		codes.add("getLeek()");
+		// Test getEntity
+		codes.add("getEntity()");
 		values.add(mLeek1.getFId());
 
 		// Test getChips
@@ -213,9 +213,9 @@ public class TestLeekFunctions {
 
 		// Test getFrequency
 		codes.add("getFrequency()");
-		values.add(mLeek1.getStat(Entity.CHARAC_FREQUENCY));
+		values.add(mLeek1.getStat(Entity.STAT_FREQUENCY));
 		codes.add("getFrequency(" + mLeek2.getFId() + ")");
-		values.add(mLeek2.getStat(Entity.CHARAC_FREQUENCY));
+		values.add(mLeek2.getStat(Entity.STAT_FREQUENCY));
 		codes.add("getFrequency(-1)");
 		values.add(null);
 
@@ -288,7 +288,8 @@ public class TestLeekFunctions {
 			if (i != 0)
 				leekscript += ",";
 			leekscript += mCodes.get(i);
-			values[i] = mValues.get(i);
+			// Convert Integer to Long to match LeekScript runtime types
+			values[i] = mValues.get(i) instanceof Integer ? ((Integer) mValues.get(i)).longValue() : mValues.get(i);
 		}
 		leekscript += "];";
 		try {
@@ -296,8 +297,8 @@ public class TestLeekFunctions {
 		} catch (LSException e) {
 			int i = e.getIndex();
 			System.err.println("Erreur :\n" + mCodes.get(i));
-			System.err.println("Valeur attendue :\n" + ai.string(e.getThe()));
-			System.err.println("Valeur renvoyée :\n" + ai.string(e.getRun()));
+			System.err.println("Valeur attendue :\n" + ai.export(e.getThe()));
+			System.err.println("Valeur renvoyée :\n" + ai.export(e.getRun()));
 			return false;
 		}
 	}

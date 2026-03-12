@@ -20,6 +20,7 @@ import leekscript.runner.LeekRunException;
 import leekscript.runner.values.ArrayLeekValue;
 import leekscript.runner.values.GenericArrayLeekValue;
 import leekscript.runner.values.LegacyArrayLeekValue;
+import leekscript.runner.values.MapLeekValue;
 
 public class FightClass {
 
@@ -340,8 +341,34 @@ public class FightClass {
 		return ai.getFight().getOrder().getNextPlayer().getFId();
 	}
 
+	public static Long getNextPlayer(EntityAI ai, Object value) {
+		if (value == null)
+			return (long) ai.getFight().getOrder().getNextPlayer().getFId();
+		if (value instanceof Number) {
+			var entity = ai.getFight().getEntity(((Number) value).intValue());
+			if (entity != null) {
+				var next = ai.getFight().getOrder().getNextPlayer(entity);
+				if (next != null) return (long) next.getFId();
+			}
+		}
+		return null;
+	}
+
 	public static long getPreviousPlayer(EntityAI ai) {
 		return ai.getFight().getOrder().getPreviousPlayer().getFId();
+	}
+
+	public static Long getPreviousPlayer(EntityAI ai, Object value) {
+		if (value == null)
+			return (long) ai.getFight().getOrder().getPreviousPlayer().getFId();
+		if (value instanceof Number) {
+			var entity = ai.getFight().getEntity(((Number) value).intValue());
+			if (entity != null) {
+				var prev = ai.getFight().getOrder().getPreviousPlayer(entity);
+				if (prev != null) return (long) prev.getFId();
+			}
+		}
+		return null;
 	}
 
 	public static long getCellToUseWeapon(EntityAI ai, long value1) throws LeekRunException {
@@ -793,6 +820,40 @@ public class FightClass {
 			}
 		}
 		return null;
+	}
+
+	public static MapLeekValue getBulbCharacteristics(EntityAI ai, long id) throws LeekRunException {
+		return getBulbStats(ai, id);
+	}
+
+	public static MapLeekValue getBulbStats(EntityAI ai, long id) throws LeekRunException {
+		if (id > 0) {
+			Chip chip = Chips.getChip((int) id);
+			if (chip != null && chip.getAttack().getEffects().get(0).getId() == Effect.TYPE_SUMMON) {
+				var template = Bulbs.getInvocationTemplate((int) chip.getAttack().getEffects().get(0).getValue1());
+				if (template != null) {
+					var map = new MapLeekValue(ai);
+					map.set(ai, (long) Entity.STAT_LIFE, makeRange(ai, template.getMinLife(), template.getMaxLife()));
+					map.set(ai, (long) Entity.STAT_STRENGTH, makeRange(ai, template.getMinStrength(), template.getMaxStrength()));
+					map.set(ai, (long) Entity.STAT_WISDOM, makeRange(ai, template.getMinWisdom(), template.getMaxWisdom()));
+					map.set(ai, (long) Entity.STAT_AGILITY, makeRange(ai, template.getMinAgility(), template.getMaxAgility()));
+					map.set(ai, (long) Entity.STAT_RESISTANCE, makeRange(ai, template.getMinResistance(), template.getMaxResistance()));
+					map.set(ai, (long) Entity.STAT_SCIENCE, makeRange(ai, template.getMinScience(), template.getMaxScience()));
+					map.set(ai, (long) Entity.STAT_MAGIC, makeRange(ai, template.getMinMagic(), template.getMaxMagic()));
+					map.set(ai, (long) Entity.STAT_TP, makeRange(ai, template.getMinTp(), template.getMaxTp()));
+					map.set(ai, (long) Entity.STAT_MP, makeRange(ai, template.getMinMp(), template.getMaxMp()));
+					return map;
+				}
+			}
+		}
+		return null;
+	}
+
+	private static ArrayLeekValue makeRange(EntityAI ai, int min, int max) throws LeekRunException {
+		var arr = new ArrayLeekValue(ai, 2);
+		arr.push(ai, (long) min);
+		arr.push(ai, (long) max);
+		return arr;
 	}
 
 	public static Long getEntityTurnOrder(EntityAI ai, Object value) {

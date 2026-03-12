@@ -233,6 +233,21 @@ public class EntityClass {
 		return null;
 	}
 
+	public static long getStat(EntityAI ai, long stat) {
+		return (long) ai.getEntity().getStat((int) stat);
+	}
+
+	public static Long getStat(EntityAI ai, Object entity, long stat) {
+		if (entity == null)
+			return (long) ai.getEntity().getStat((int) stat);
+		if (entity instanceof Number) {
+			var l = ai.getFight().getEntity(((Number) entity).intValue());
+			if (l != null)
+				return (long) l.getStat((int) stat);
+		}
+		return null;
+	}
+
 	public static Long getCell(EntityAI ai) throws LeekRunException {
 		if (ai.getEntity().getCell() != null)
 			return (long) ai.getEntity().getCell().getId();
@@ -896,6 +911,58 @@ public class EntityClass {
 			var l = ai.getFight().getEntity(((Number) value).intValue());
 			if (l != null) {
 				return (long) l.getType() + 1;
+			}
+		}
+		return null;
+	}
+
+	public static long getMobType(EntityAI ai) throws LeekRunException {
+		if (ai.getEntity().getType() == Entity.TYPE_MOB) {
+			return (long) ai.getEntity().getSkin();
+		}
+		return -1;
+	}
+
+	public static Long getMobType(EntityAI ai, Object value) throws LeekRunException {
+		if (value == null) {
+			if (ai.getEntity().getType() == Entity.TYPE_MOB) {
+				return (long) ai.getEntity().getSkin();
+			}
+			return -1L;
+		}
+		if (value instanceof Number) {
+			var l = ai.getFight().getEntity(((Number) value).intValue());
+			if (l != null) {
+				if (l.getType() == Entity.TYPE_MOB) {
+					return (long) l.getSkin();
+				}
+				return -1L;
+			}
+		}
+		return null;
+	}
+
+	public static long getBulbType(EntityAI ai) throws LeekRunException {
+		if (ai.getEntity().getType() == Entity.TYPE_BULB) {
+			return (long) ai.getEntity().getSkin();
+		}
+		return -1;
+	}
+
+	public static Long getBulbType(EntityAI ai, Object value) throws LeekRunException {
+		if (value == null) {
+			if (ai.getEntity().getType() == Entity.TYPE_BULB) {
+				return (long) ai.getEntity().getSkin();
+			}
+			return -1L;
+		}
+		if (value instanceof Number) {
+			var l = ai.getFight().getEntity(((Number) value).intValue());
+			if (l != null) {
+				if (l.getType() == Entity.TYPE_BULB) {
+					return (long) l.getSkin();
+				}
+				return -1L;
 			}
 		}
 		return null;
