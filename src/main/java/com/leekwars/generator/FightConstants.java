@@ -4,6 +4,7 @@ import com.leekwars.generator.attack.Attack;
 import com.leekwars.generator.attack.EntityState;
 import com.leekwars.generator.effect.Effect;
 import com.leekwars.generator.fight.Fight;
+import com.leekwars.generator.state.Entity;
 
 import leekscript.common.Type;
 import leekscript.runner.ILeekConstant;
@@ -23,6 +24,18 @@ public enum FightConstants implements ILeekConstant {
 	ENTITY_TURRET(3, Type.INT),
 	ENTITY_CHEST(4, Type.INT),
 	ENTITY_MOB(5, Type.INT),
+
+	// Bulb types
+	BULB_PUNY(1, Type.INT),
+	BULB_FIRE(2, Type.INT),
+	BULB_HEALER(3, Type.INT),
+	BULB_ROCKY(4, Type.INT),
+	BULB_ICED(5, Type.INT),
+	BULB_LIGHTNING(6, Type.INT),
+	BULB_METALLIC(7, Type.INT),
+	BULB_WIZARD(8, Type.INT),
+	BULB_TACTICIAN(11, Type.INT),
+	BULB_SAVANT(12, Type.INT),
 
 	// Constants
 	EFFECT_TARGET_ALLIES(Effect.TARGET_ALLIES, Type.INT),
@@ -355,8 +368,46 @@ public enum FightConstants implements ILeekConstant {
 	BOSS_FENNEL_KING(2, Type.INT),
 	BOSS_EVIL_PUMPKIN(3, Type.INT),
 
+	// Mobs
+	MOB_NASU_SAMURAI(1, Type.INT),
+	MOB_NASU_SEITO(13, Type.INT),
+	MOB_NASU_WARRIOR(14, Type.INT),
+	MOB_NASU_RONIN(15, Type.INT),
+	MOB_FENNEL_KING(2, Type.INT),
+	MOB_FENNEL_KNIGHT(16, Type.INT),
+	MOB_FENNEL_SQUIRE(17, Type.INT),
+	MOB_FENNEL_SCRIBE(18, Type.INT),
+	MOB_EVIL_PUMPKIN(3, Type.INT),
+	MOB_GRAAL(4, Type.INT),
+	MOB_RED_CRYSTAL(5, Type.INT),
+	MOB_GREEN_CRYSTAL(6, Type.INT),
+	MOB_BLUE_CRYSTAL(7, Type.INT),
+	MOB_YELLOW_CRYSTAL(8, Type.INT),
+	MOB_TURBAN(9, Type.INT),
+	MOB_WARTY(10, Type.INT),
+	MOB_HUBBARD(11, Type.INT),
+	MOB_OFFSPRING(12, Type.INT),
+
 	SUMMON_LIMIT(Fight.SUMMON_LIMIT, Type.INT),
-	CRITICAL_FACTOR(Effect.CRITICAL_FACTOR, Type.REAL);
+	CRITICAL_FACTOR(Effect.CRITICAL_FACTOR, Type.REAL),
+
+	// Stats
+	STAT_LIFE(Entity.STAT_LIFE, Type.INT),
+	STAT_TP(Entity.STAT_TP, Type.INT),
+	STAT_MP(Entity.STAT_MP, Type.INT),
+	STAT_STRENGTH(Entity.STAT_STRENGTH, Type.INT),
+	STAT_AGILITY(Entity.STAT_AGILITY, Type.INT),
+	STAT_FREQUENCY(Entity.STAT_FREQUENCY, Type.INT),
+	STAT_WISDOM(Entity.STAT_WISDOM, Type.INT),
+	STAT_ABSOLUTE_SHIELD(Entity.STAT_ABSOLUTE_SHIELD, Type.INT),
+	STAT_RELATIVE_SHIELD(Entity.STAT_RELATIVE_SHIELD, Type.INT),
+	STAT_RESISTANCE(Entity.STAT_RESISTANCE, Type.INT),
+	STAT_SCIENCE(Entity.STAT_SCIENCE, Type.INT),
+	STAT_MAGIC(Entity.STAT_MAGIC, Type.INT),
+	STAT_DAMAGE_RETURN(Entity.STAT_DAMAGE_RETURN, Type.INT),
+	STAT_POWER(Entity.STAT_POWER, Type.INT),
+	STAT_CORES(Entity.STAT_CORES, Type.INT),
+	STAT_RAM(Entity.STAT_RAM, Type.INT);
 
 	private double value;
 	private Type type;
