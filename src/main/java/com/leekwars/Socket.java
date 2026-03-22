@@ -167,7 +167,7 @@ public class Socket {
     }
 
     private static ObjectNode handleScenarioWinner(JsonNode request, Generator generator) {
-        System.out.println("Received scenario winner request: " + request.toString());
+        String requestId = request.path("requestId").asText(null);
         if (!request.has("scenario") || !request.get("scenario").isObject()) {
             return error("invalid_request", "Missing or invalid field: scenario");
         }
@@ -190,17 +190,15 @@ public class Socket {
                 outcome = generator.runScenario(scenario, null, new LocalDbRegisterManager(),
                         new LocalTrophyManager());
             }
-            System.out.println("Winner: " + outcome.winner);
             ObjectNode response = JSON.createObjectNode();
             response.put("winner", outcome.winner);
-            return success("scenario", response);
+            return success("scenario", response, requestId);
         } catch (Exception e) {
             return error("scenario_failed", e.getMessage());
         }
     }
 
     private static ObjectNode handleScenario(JsonNode request, Generator generator) {
-        System.out.println("Received scenario request: " + request.toString());
         if (!request.has("scenario") || !request.get("scenario").isObject()) {
             return error("invalid_request", "Missing or invalid field: scenario");
         }
@@ -223,7 +221,6 @@ public class Socket {
                 outcome = generator.runScenario(scenario, null, new LocalDbRegisterManager(),
                         new LocalTrophyManager());
             }
-            System.out.println("Winner: " + outcome.winner);
             return success("scenario", outcome.toJson());
         } catch (Exception e) {
             return error("scenario_failed", e.getMessage());
@@ -235,6 +232,17 @@ public class Socket {
         response.put("ok", true);
         response.put("type", type);
         response.set("data", data);
+        return response;
+    }
+
+    private static ObjectNode success(String type, JsonNode data, String requestId) {
+        ObjectNode response = success(type, data);
+        if (requestId != null && !requestId.isBlank()) {
+            response.put("requestId", requestId);
+            if (response.path("data").isObject()) {
+                ((ObjectNode) response.get("data")).put("requestId", requestId);
+            }
+        }
         return response;
     }
 
@@ -257,4 +265,5 @@ public class Socket {
             Thread.currentThread().interrupt();
         }
     }
+
 }
