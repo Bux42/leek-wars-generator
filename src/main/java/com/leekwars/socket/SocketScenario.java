@@ -2,6 +2,7 @@ package com.leekwars.socket;
 
 import java.util.ArrayList;
 
+import com.leekwars.generator.leek.Leek;
 import com.leekwars.generator.scenario.EntityInfo;
 import com.leekwars.generator.scenario.FarmerInfo;
 import com.leekwars.generator.scenario.Scenario;
@@ -98,9 +99,16 @@ public class SocketScenario {
                             if (entity.type == 2) { // turret
                                 entity.customClass = Turret.class;
                             }
+
+                            if (entity.type == 0) { // mob => leek ?, set default skin and face for now
+                                entity.customClass = Leek.class;
+                            }
                         }
                         if (entityJson.has("cellPos")) {
                             entity.cell = entityJson.path("cellPos").intValue();
+                        }
+                        if (entityJson.has("cell")) {
+                            entity.cell = entityJson.path("cell").intValue();
                         }
                         teamEntities.add(entity);
                     }
