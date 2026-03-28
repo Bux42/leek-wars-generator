@@ -110,6 +110,9 @@ public class SocketScenario {
                         if (entityJson.has("cell")) {
                             entity.cell = entityJson.path("cell").intValue();
                         }
+                        if (entityJson.has("dead")) {
+                            entity.dead = entityJson.path("dead").booleanValue();
+                        }
                         teamEntities.add(entity);
                     }
                 }
