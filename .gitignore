@@ -11,3 +11,4 @@ generator_socket.jar
 build/
 bin/
 .vscode
+cloned_ais/

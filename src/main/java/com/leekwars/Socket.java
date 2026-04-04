@@ -14,6 +14,7 @@ import java.util.concurrent.Executors;
 import com.leekwars.generator.Data;
 import com.leekwars.generator.Generator;
 import com.leekwars.generator.Log;
+import com.leekwars.generator.fight.StatisticsManager;
 import com.leekwars.generator.outcome.Outcome;
 import com.leekwars.generator.scenario.Scenario;
 import com.leekwars.socket.SocketScenario;
@@ -220,6 +221,25 @@ public class Socket {
                 generator.setCache(useCache);
                 outcome = generator.runScenario(scenario, null, new LocalDbRegisterManager(),
                         new LocalTrophyManager());
+
+                // CustomStatisticsManager statisticsManager = new CustomStatisticsManager();
+
+                // outcome = generator.runScenario(
+                // scenario,
+                // null,
+                // new LocalDbRegisterManager(),
+                // statisticsManager);
+
+                // System.out.println("Scenario executed successfully, statistics: " +
+                // outcome.statistics.toString());
+                // System.out.println(statisticsManager.getHeal() + " heals");
+                // System.out.println(statisticsManager.getCriticalHits() + " critical hits");
+                // System.out.println(statisticsManager.getBullets() + " bullets");
+                // System.out.println(statisticsManager.getOperations() + " operations");
+                // System.out.println(statisticsManager.getStackOverflow() + " stack
+                // overflows");
+                // System.out.println(statisticsManager.getKills() + " kills");
+                // System.out.println(outcome.exception + " exceptions");
             }
             return success("scenario", outcome.toJson());
         } catch (Exception e) {
