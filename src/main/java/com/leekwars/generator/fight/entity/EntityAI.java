@@ -123,9 +123,9 @@ public class EntityAI extends AI {
 				file = folder.resolve(entityInfo.ai);
 			}
 		} catch (FileNotFoundException e) {
-			// Failed to resolve, not normal
+			// Should not happen after refacto (direct folder ID + name resolution)
 			generator.exception(e, (Fight) entity.getFight());
-			((LeekLog) entity.getLogs()).addSystemLog(LeekLog.SERROR, Error.COMPILE_JAVA, new String[] { "Failed to resolve AI" });
+			((LeekLog) entity.getLogs()).addSystemLog(LeekLog.SERROR, Error.AI_NOT_EXISTING, new String[] { entityInfo.ai != null ? entityInfo.ai : entityInfo.ai_path });
 		}
 		return file;
 	}
@@ -345,7 +345,7 @@ public class EntityAI extends AI {
 			try {
 				addSystemLog(LeekLog.ERROR, error.type.ordinal(), error.parameters, e);
 			} catch (LeekRunException e1) {
-				fight.generator.exception(e1, fight, mEntity.getFarmer(), getFile());
+				// LeekRunException is always a player error (ops limit, memory, etc.), not a system error
 			}
 			// On signale l'erreur si elle est inconnue
 			if (error.type == Error.UNKNOWN_ERROR && isFirstRuntimeError) {
