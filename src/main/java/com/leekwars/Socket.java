@@ -11,6 +11,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import com.leekwars.generator.AdvancedGenerator;
 import com.leekwars.generator.Data;
 import com.leekwars.generator.Generator;
 import com.leekwars.generator.Log;
@@ -35,6 +36,8 @@ public class Socket {
     private static final JsonMapper JSON = new JsonMapper();
 
     public static void main(String[] args) {
+
+        AdvancedGenerator test = new AdvancedGenerator();
 
         boolean nocache = false;
         boolean db_resolver = false;
@@ -205,6 +208,8 @@ public class Socket {
         }
 
         boolean useCache = request.path("useCache").asBoolean(true);
+
+        // System.out.println(request);
 
         Scenario scenario;
         try {
