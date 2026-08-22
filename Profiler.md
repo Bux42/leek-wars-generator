@@ -87,10 +87,11 @@ runIA (basic.leek:1);ClassA.ClassB.methodA (basic.leek:20) 42
 ```
 
 Files can be rendered with `flamegraph.pl`:
+(you will need perl / Strawberry Perl installed to run that script)
 
 ```powershell
-perl .\FlameGraph\flamegraph.pl `
-    .\profiler-output\<timestamp>\1\Patrick_12.folded `
+perl .\FlameGraph\flamegraph.pl --width 1920 --countname OPs --colors js `
+    .\profiler-output\<timestamp>\<turn>\<entity name>_<entity id>.folded `
     > .\profile.svg
 ```
 
