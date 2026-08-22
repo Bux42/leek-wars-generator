@@ -3,6 +3,7 @@ package com.leekwars.generator.fight.entity;
 import com.leekwars.generator.state.Entity;
 
 import leekscript.runner.LeekRunException;
+import leekscript.runner.OperationsProfiler;
 import leekscript.runner.Session;
 import leekscript.runner.values.FunctionLeekValue;
 
@@ -50,6 +51,7 @@ public class BulbAI extends EntityAI {
 		try {
 			var argCount = mAIFunction.getArgumentsCount() == -1 ? 0 : mAIFunction.getArgumentsCount();
 			var args = new Object[argCount];
+<<<<<<< HEAD
 			// Une fonction sans paramètre reste valide : l'entité déclenchante est
 			// simplement ignorée. Comme partout dans l'API, une entité se passe par son
 			// id, en long.
@@ -60,7 +62,13 @@ public class BulbAI extends EntityAI {
 			if (argCount > 0 && trigger != null) {
 				args[0] = (long) trigger.getFId();
 			}
-			return mAIFunction.run(mOwnerAI, null, args);
+			OperationsProfiler ownerProfiler = mOwnerAI.getOperationsProfiler();
+			mOwnerAI.setOperationsProfiler(getOperationsProfiler());
+			try {
+				return mAIFunction.run(mOwnerAI, null, args);
+			} finally {
+				mOwnerAI.setOperationsProfiler(ownerProfiler);
+			}
 		} finally {
 			long spent = mOwnerAI.getOperations();
 			mOwnerAI.resetCounter();
