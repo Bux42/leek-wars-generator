@@ -15,6 +15,8 @@ import leekscript.compiler.LeekScript;
 import leekscript.compiler.IACompiler.AnalyzeResult;
 import leekscript.compiler.resolver.NativeFileSystem;
 
+import com.leekwars.generator.Data;
+
 public class Main {
 
 	private static final String TAG = Main.class.getSimpleName();
@@ -41,7 +43,7 @@ public class Main {
 				} else if (arg.startsWith("--folder=")) {
 					folder = Integer.parseInt(arg.substring("--folder=".length()));
 				}
-			} else {
+			} else if (file == null) {
 				file = arg;
 			}
 		}
