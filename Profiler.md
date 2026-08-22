@@ -97,12 +97,41 @@ perl .\FlameGraph\flamegraph.pl --width 1920 --countname OPs --colors js `
 
 Only alive, valid entities that execute a turn get files. Bulbs use their own entity file. `staticInit` appears when it consumes OP.
 
-## Update profiler code
+## Sync official changes
+
+Add official remotes once:
 
 ```powershell
+git remote add upstream https://github.com/leek-wars/leek-wars-generator.git
+git -C leekscript remote add upstream https://github.com/leek-wars/leekscript.git
+```
+
+Update generator `master`, then rebase profiler branch:
+
+```powershell
+git fetch upstream master
+git switch master
+git reset --hard upstream/master
 git switch profiler
-git pull
-git submodule sync --recursive
-git submodule update --init --remote --recursive
+git rebase master
+```
+
+Update `leekscript` official base, then rebase profiler instrumentation:
+
+```powershell
+git -C leekscript fetch upstream master
+git -C leekscript switch master
+git -C leekscript reset --hard upstream/master
+git -C leekscript switch profiler
+git -C leekscript rebase master
+```
+
+Record updated submodule commit in generator:
+
+```powershell
+git add leekscript
+git commit -m "Update leekscript submodule"
 .\gradlew.bat jar
 ```
+
+Resolve conflicts by keeping official changes and reapplying profiler hooks. `git submodule update --remote` follows fork `profiler` branch; use it only after fork branch receives synced profiler commits.
