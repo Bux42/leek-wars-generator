@@ -54,6 +54,15 @@ https://github.com/brendangregg/FlameGraph.git
 
 ## Build generator
 
+Download required GraalVM isolate resource. File is large and not stored in Git:
+
+```powershell
+New-Item -ItemType Directory -Force .\libs | Out-Null
+Invoke-WebRequest `
+    -Uri "https://github.com/leek-wars/leek-wars-graal-isolate/releases/download/v25.1.3-combined-2/js-isolate-resources-linux-amd64.jar" `
+    -OutFile .\libs\js-isolate-resources-linux-amd64.jar
+```
+
 Run from repository root:
 
 ```powershell
