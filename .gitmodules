@@ -2,3 +2,6 @@
 	path = leekscript
 	url = https://github.com/Bux42/leekscript-local.git
 	branch = profiler
+[submodule "FlameGraph"]
+	path = FlameGraph
+	url = https://github.com/brendangregg/FlameGraph.git
