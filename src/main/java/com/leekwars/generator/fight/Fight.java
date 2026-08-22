@@ -20,6 +20,8 @@ import com.leekwars.generator.fight.entity.BulbAI;
 import com.leekwars.generator.fight.entity.EntityAI;
 import com.leekwars.generator.leek.FarmerLog;
 import com.leekwars.generator.leek.LeekLog;
+import com.leekwars.generator.profiler.FightProfilerOutput;
+import com.leekwars.generator.profiler.FlameGraphProfiler;
 
 import leekscript.common.Error;
 import leekscript.compiler.AIFile;
@@ -76,6 +78,7 @@ public class Fight {
 	private State state = new State();
 	/** Sandbox GraalVM partage par le combat (IA JS/Python), cree paresseusement. */
 	private com.leekwars.generator.polyglot.PolyglotSandbox polyglotSandbox;
+	private FightProfilerOutput profilerOutput;
 
 
 	public Fight(Generator generator) {
@@ -164,6 +167,7 @@ public class Fight {
 	public void startFight(boolean drawCheckLife) throws Exception {
 
 		initFight();
+		profilerOutput = FightProfilerOutput.create();
 
 		for (var entity : state.getEntities().values()) {
 
@@ -369,10 +373,21 @@ public class Fight {
 			if (ai != null) {
 				if (ai.isValid()) {
 					ai.setEntity(current);
+					FlameGraphProfiler profiler = profilerOutput == null ? null : profilerOutput.start(current, state.getOrder().getTurn());
+					if (profiler != null) {
+						ai.setOperationsProfiler(profiler);
+					}
 
 					// System.out.println("Run " + current.getName() + " ai...");
 					long startTime = System.nanoTime();
-					ai.runTurn(state.getOrder().getTurn());
+					try {
+						ai.runTurn(state.getOrder().getTurn());
+					} finally {
+						if (profiler != null) {
+							ai.setOperationsProfiler(null);
+							profiler.write();
+						}
+					}
 					long endTime = System.nanoTime();
 
 					state.statistics.addTimes(current, endTime - startTime, ai.operations());

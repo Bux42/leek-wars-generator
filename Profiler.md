@@ -1,12 +1,13 @@
 # Profiler setup on Windows
 
-Setup target: `profiler` branch of `leek-wars-generator` and `profiler` branch of the `leekscript` submodule.
+Setup target: `profiler` branch of `leek-wars-generator`, `profiler` branch of `leekscript`, and `FlameGraph` submodule.
 
 ## Requirements
 
 - Windows 10 or newer
 - Git for Windows
 - JDK 25
+- Perl, such as Strawberry Perl
 - Internet access to GitHub and Maven Central
 
 Set `JAVA_HOME` to JDK 25 installation directory. Add `%JAVA_HOME%\bin` to `Path`.
@@ -16,6 +17,7 @@ Check setup in PowerShell:
 ```powershell
 java -version
 git --version
+perl --version
 ```
 
 Project wrapper downloads Gradle 9.1.0. No separate Gradle installation required.
@@ -31,13 +33,14 @@ git submodule sync --recursive
 git submodule update --init --remote --recursive
 ```
 
-`git submodule update --remote` uses `branch = profiler` from `.gitmodules`.
+`git submodule update --remote` uses `branch = profiler` for `leekscript`. `FlameGraph` follows its remote default branch.
 
 Verify submodule configuration:
 
 ```powershell
 git config -f .gitmodules --get submodule.leekscript.url
 git config -f .gitmodules --get submodule.leekscript.branch
+git config -f .gitmodules --get submodule.FlameGraph.url
 git -C leekscript remote -v
 ```
 
@@ -46,6 +49,7 @@ Expected values:
 ```text
 https://github.com/Bux42/leekscript-local.git
 profiler
+https://github.com/brendangregg/FlameGraph.git
 ```
 
 ## Build generator
@@ -68,6 +72,30 @@ java -jar generator.jar test/scenario/scenario1.json .
 
 Generator writes fight result JSON to standard output.
 
+## Profiler output
+
+Every fight writes profiler data under:
+
+```text
+profiler-output/<timestamp>/<turn>/<entity name>_<entity id>.folded
+```
+
+Each file uses folded-stack format. One line contains a semicolon-separated stack and consumed OP count:
+
+```text
+runIA (basic.leek:1);ClassA.ClassB.methodA (basic.leek:20) 42
+```
+
+Files can be rendered with `flamegraph.pl`:
+
+```powershell
+perl .\FlameGraph\flamegraph.pl `
+    .\profiler-output\<timestamp>\1\Patrick_12.folded `
+    > .\profile.svg
+```
+
+Only alive, valid entities that execute a turn get files. Bulbs use their own entity file. `staticInit` appears when it consumes OP.
+
 ## Update profiler code
 
 ```powershell
@@ -77,4 +105,3 @@ git submodule sync --recursive
 git submodule update --init --remote --recursive
 .\gradlew.bat jar
 ```
-

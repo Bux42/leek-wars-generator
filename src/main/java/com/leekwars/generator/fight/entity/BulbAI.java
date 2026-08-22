@@ -3,6 +3,7 @@ package com.leekwars.generator.fight.entity;
 import com.leekwars.generator.state.Entity;
 
 import leekscript.runner.LeekRunException;
+import leekscript.runner.OperationsProfiler;
 import leekscript.runner.Session;
 import leekscript.runner.values.FunctionLeekValue;
 
@@ -32,7 +33,13 @@ public class BulbAI extends EntityAI {
 			mOwnerAI.mEntity = mEntity;
 			var argCount = mAIFunction.getArgumentsCount() == -1 ? 0 : mAIFunction.getArgumentsCount();
 			var args = new Object[argCount];
-			return mAIFunction.run(mOwnerAI, null, args);
+			OperationsProfiler ownerProfiler = mOwnerAI.getOperationsProfiler();
+			mOwnerAI.setOperationsProfiler(getOperationsProfiler());
+			try {
+				return mAIFunction.run(mOwnerAI, null, args);
+			} finally {
+				mOwnerAI.setOperationsProfiler(ownerProfiler);
+			}
 		}
 		return null;
 	}
