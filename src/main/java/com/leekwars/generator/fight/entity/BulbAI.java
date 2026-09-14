@@ -42,7 +42,6 @@ public class BulbAI extends EntityAI {
 		try {
 			var argCount = mAIFunction.getArgumentsCount() == -1 ? 0 : mAIFunction.getArgumentsCount();
 			var args = new Object[argCount];
-<<<<<<< HEAD
 			// Une fonction sans paramètre reste valide : l'entité déclenchante est
 			// simplement ignorée. Comme partout dans l'API, une entité se passe par son
 			// id, en long.
