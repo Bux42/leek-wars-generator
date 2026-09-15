@@ -65,6 +65,12 @@ public class EntityInfo {
 	 * setLoadout() : référence de facturation d'une potion de restat (#4726). Null = le
 	 * poireau est dans sa configuration persistante. */
 	public Map<Integer, Integer> lastFightCapital;
+	/**
+	 * Pièces AMÉLIORÉES portées par ce poireau à l'entrée dans le combat : il les tient, donc
+	 * elles ne sont pas dans le pot commun de l'éleveur, et un autre poireau ne peut pas les
+	 * lui prendre tant qu'il ne se rééquipe pas lui-même.
+	 */
+	public List<com.leekwars.generator.state.ComponentInstance> heldComponents;
 	public Integer cell;
 
 	public static class LoadoutData {
@@ -77,6 +83,15 @@ public class EntityInfo {
 		public Map<Integer, Integer> capitalStats;
 		/** True si le loadout réclame plus de capital que le niveau du poireau n'en donne. */
 		public boolean overCapital;
+		/**
+		 * Composants de l'ensemble, dont l'amélioration se dispute au moment de l'appel à
+		 * setLoadout() (`stats` compte déjà les stats de BASE de leurs modèles).
+		 *
+		 * <p>Null quand le worker n'a pas fourni l'information : `stats` porte alors les
+		 * améliorations qu'il a lui-même résolues avant le combat. C'est ce qui permet au
+		 * générateur de partir en prod avant le worker sans compter deux fois.
+		 */
+		public List<com.leekwars.generator.state.FightLoadout.ComponentChoice> components;
 
 		public LoadoutData(String name, List<Integer> weapons, List<Integer> forgottenWeapons, List<Integer> chips, Map<Integer, Integer> stats) {
 			this(name, weapons, forgottenWeapons, chips, stats, null, false);
@@ -281,10 +296,11 @@ public class EntityInfo {
 			entity.addChip(Chips.getChip(chip));
 		}
 		for (LoadoutData ld : loadouts) {
-			entity.addLoadout(new FightLoadout(ld.name, ld.weapons, ld.forgottenWeapons, ld.chips, ld.stats, ld.capitalStats, ld.overCapital));
+			entity.addLoadout(new FightLoadout(ld.name, ld.weapons, ld.forgottenWeapons, ld.chips, ld.stats, ld.capitalStats, ld.overCapital, ld.components));
 		}
 		entity.setCapitalStats(capitalStats);
 		entity.setLastFightCapital(lastFightCapital);
+		entity.setHeldComponents(heldComponents);
 
 		return entity;
 	}

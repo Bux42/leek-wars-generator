@@ -230,6 +230,10 @@ public class State {
 		this.seed = state.seed;
 		this.mRestatPotionsAvailable = new HashMap<>(state.mRestatPotionsAvailable);
 		this.mRestatPotionsConsumed = new HashMap<>(state.mRestatPotionsConsumed);
+		this.mFreeComponents = new HashMap<>();
+		for (var entry : state.mFreeComponents.entrySet()) {
+			this.mFreeComponents.put(entry.getKey(), new ArrayList<>(entry.getValue()));
+		}
 	}
 
 	// Potions de restat disponibles / consommées par farmer pendant le combat.
@@ -257,6 +261,65 @@ public class State {
 
 	public java.util.Map<Integer, Integer> getRestatPotionsConsumed() {
 		return mRestatPotionsConsumed;
+	}
+
+	/**
+	 * Pot commun des pièces AMÉLIORÉES d'un éleveur, le temps du combat : les exemplaires
+	 * qu'aucun de ses poireaux ne tient. Au départ, c'est son stock libre — ce que ses
+	 * poireaux portent, ils le tiennent (cf. {@link Entity#getHeldComponents}).
+	 *
+	 * <p>Une pièce améliorée est un objet unique : elle ne vaut que pour un poireau. Rien
+	 * n'est écrit en base, le combat suivant repart de l'équipement réel.
+	 */
+	private java.util.Map<Integer, java.util.List<ComponentInstance>> mFreeComponents = new HashMap<>();
+
+	public void setFreeComponents(int farmer, java.util.List<ComponentInstance> instances) {
+		mFreeComponents.put(farmer, instances == null ? new ArrayList<>() : new ArrayList<>(instances));
+	}
+
+	/** Rend au pot les pièces qu'une entité tenait — elle vient de se rééquiper. */
+	public void releaseComponents(int farmer, java.util.List<ComponentInstance> instances) {
+		if (instances == null || instances.isEmpty()) return;
+		mFreeComponents.computeIfAbsent(farmer, k -> new ArrayList<>()).addAll(instances);
+	}
+
+	/**
+	 * Prend dans le pot l'exemplaire d'un modèle le plus proche des stats voulues, et le
+	 * retire du pot : premier arrivé, premier servi.
+	 *
+	 * <p>Sans stats voulues, l'ensemble ne désigne aucun exemplaire précis : on ne rend au
+	 * poireau que celui qu'il tenait déjà ({@code previous}), jamais la pièce améliorée d'un
+	 * autre. Sinon un ensemble enregistré avant les altérations — ses composants n'ont pas de
+	 * stats — se servirait dans le pot sans que personne ne l'ait demandé.
+	 *
+	 * @param wanted delta mémorisé par l'ensemble, vide ou null pour « pas de préférence »
+	 * @param previous pièces que ce poireau tenait avant de se rééquiper, prioritaires à
+	 *                 distance égale
+	 * @return l'exemplaire pris, ou null si le pot n'a rien à offrir
+	 */
+	public ComponentInstance takeComponent(int farmer, int template, java.util.Map<Integer, Integer> wanted,
+			java.util.List<ComponentInstance> previous) {
+		var pool = mFreeComponents.get(farmer);
+		if (pool == null || pool.isEmpty()) return null;
+		boolean noPreference = wanted == null || wanted.isEmpty();
+
+		ComponentInstance best = null;
+		long bestKey = Long.MAX_VALUE;
+		for (var instance : pool) {
+			if (instance.getTemplate() != template) continue;
+			boolean wasMine = previous != null && previous.contains(instance);
+			// Pas de préférence : seule la pièce que le poireau tenait déjà lui revient.
+			if (noPreference && !wasMine) continue;
+			int d = ComponentInstance.distance(instance.getStats(), wanted);
+			// Clé composite : distance (jusqu'à ~10^6), puis la pièce déjà tenue, puis l'id.
+			long key = ((long) d * 2 + (wasMine ? 0 : 1)) * 4_000_000_000L + instance.getId();
+			if (best == null || key < bestKey) {
+				best = instance;
+				bestKey = key;
+			}
+		}
+		if (best != null) pool.remove(best);
+		return best;
 	}
 
 	public void addFlag(int team, int flag) {

@@ -158,6 +158,9 @@ public class Generator {
 		fight.getState().seed(scenario.seed);
 		for (var farmer : scenario.farmers.values()) {
 			fight.getState().setRestatPotionsAvailable(farmer.id, farmer.restatPotions);
+			// Pot commun des pièces améliorées libres : les setLoadout() de ses poireaux s'y
+			// servent, premier arrivé premier servi, le temps du combat.
+			fight.getState().setFreeComponents(farmer.id, farmer.componentStock);
 		}
 
 		// Create logs and compile AIs

@@ -149,6 +149,12 @@ public abstract class Entity {
 	private Map<Integer, Integer> mAppliedLoadoutCapital = null;
 	/** Vrai si ce combat a bien consommé une potion pour poser l'ensemble. */
 	private boolean mRestatCharged = false;
+	/**
+	 * Pièces AMÉLIORÉES que ce poireau tient, le temps du combat : au départ celles qu'il
+	 * porte, puis celles que son dernier setLoadout() a prises dans le pot de l'éleveur.
+	 * Tant qu'il n'appelle pas setLoadout(), il ne rend rien — son équipement est à lui.
+	 */
+	private List<ComponentInstance> mHeldComponents = new ArrayList<>();
 
 	private int usedTP;
 	private int usedMP;
@@ -271,6 +277,7 @@ public abstract class Entity {
 		this.usedMP = entity.usedMP;
 		this.passiveEffects = new ArrayList<>(entity.passiveEffects);
 		this.passiveEffectsView = Collections.unmodifiableList(this.passiveEffects);
+		this.mHeldComponents = new ArrayList<>(entity.mHeldComponents);
 		// effects and launchedEffects are final fields, each Entity gets a fresh empty list.
 	}
 
@@ -398,6 +405,16 @@ public abstract class Entity {
 		return mAppliedLoadoutCapital;
 	}
 
+	/** Pièces améliorées que ce poireau tient en ce moment. */
+	public List<ComponentInstance> getHeldComponents() {
+		return mHeldComponents;
+	}
+
+	/** Pièces améliorées portées à l'entrée dans le combat : il les tient d'emblée. */
+	public void setHeldComponents(List<ComponentInstance> instances) {
+		mHeldComponents = instances == null ? new ArrayList<>() : new ArrayList<>(instances);
+	}
+
 	public boolean isRestatCharged() {
 		return mRestatCharged;
 	}
@@ -457,6 +474,7 @@ public abstract class Entity {
 		passiveEffects.clear();
 		weapon = null;
 
+		boolean statsRecomputed = false;
 		if (applyStats) {
 			for (Map.Entry<Integer, Integer> e : loadout.getStats().entrySet()) {
 				mBaseStats.setStat(e.getKey(), e.getValue());
@@ -465,12 +483,37 @@ public abstract class Entity {
 			// comparera pour savoir s'il doit une potion. Sans information de capital
 			// (scénarios de test), rien à mémoriser.
 			mAppliedLoadoutCapital = loadout.getCapitalStats();
+			statsRecomputed = true;
 		} else if (mCapitalStats != null && loadout.getCapitalStats() != null) {
 			// Capital inchangé (pas de restat), mais les composants du loadout s'équipent
 			// quand même : stat = base de niveau + composants du loadout + capital actuel.
 			for (Map.Entry<Integer, Integer> e : loadout.getStats().entrySet()) {
 				int withoutCapital = e.getValue() - loadout.getCapitalStats().getOrDefault(e.getKey(), 0);
 				mBaseStats.setStat(e.getKey(), withoutCapital + mCapitalStats.getOrDefault(e.getKey(), 0));
+			}
+			statsRecomputed = true;
+		}
+
+		// Pot commun des pièces améliorées de l'éleveur : le poireau REND ce qu'il tenait —
+		// il se rééquipe — puis y PREND ce que l'ensemble demande, premier arrivé premier
+		// servi. Un poireau qui n'appelle jamais setLoadout() ne passe pas ici, donc ne rend
+		// rien : son équipement d'avant combat reste à lui. Rien n'est écrit en base.
+		//
+		// Les stats de l'ensemble comptent déjà les stats de BASE des composants ; seule
+		// l'amélioration se dispute, et elle s'ajoute par-dessus. Si les stats n'ont PAS été
+		// recalculées, elles portent encore les améliorations que le poireau avait à l'entrée :
+		// il ne rend rien et ne prend rien, sinon les siennes compteraient deux fois.
+		if (statsRecomputed && !loadout.getComponents().isEmpty() && state != null) {
+			List<ComponentInstance> previous = mHeldComponents;
+			mHeldComponents = new ArrayList<>();
+			state.releaseComponents(mFarmer, previous);
+			for (FightLoadout.ComponentChoice choice : loadout.getComponents()) {
+				ComponentInstance taken = state.takeComponent(mFarmer, choice.template, choice.stats, previous);
+				if (taken == null) continue;
+				mHeldComponents.add(taken);
+				for (Map.Entry<Integer, Integer> e : taken.getStats().entrySet()) {
+					mBaseStats.setStat(e.getKey(), mBaseStats.getStat(e.getKey()) + e.getValue());
+				}
 			}
 		}
 
