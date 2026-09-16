@@ -30,6 +30,9 @@ public class PolyglotConsole implements AutoCloseable {
 	/** Budget wall-clock d'une ligne de console : coupe une boucle infinie sans tuer le serveur. */
 	private static final long EXECUTE_TIMEOUT_MS = 5_000;
 
+	/** Budget wall-clock de cette console (defaut {@link #EXECUTE_TIMEOUT_MS}). */
+	private final long executeTimeoutMs;
+
 	/** Reroutage des sorties guest (console.log / print) vers l'affichage de la console. */
 	public interface LogSink {
 		/** @param level 1 = log, 2 = warn, 3 = error (memes niveaux que le LeekLog cote client). */
@@ -65,7 +68,7 @@ public class PolyglotConsole implements AutoCloseable {
 	private int sourceCounter = 0;
 
 	public PolyglotConsole(String language, LogSink sink) {
-		this(language, PolyglotSandbox.DEFAULT_STATEMENT_LIMIT, sink);
+		this(language, PolyglotSandbox.DEFAULT_STATEMENT_LIMIT, EXECUTE_TIMEOUT_MS, sink);
 	}
 
 	/**
@@ -73,8 +76,13 @@ public class PolyglotConsole implements AutoCloseable {
 	 *        de celui d'un combat. Sert au {@code /exec} du chat, ouvert a tous et au budget bien plus court
 	 *        que la console. Unite proche des ops affichees sans leur etre identique (le compteur
 	 *        deterministe des ops est un instrument a part, cf {@link PolyglotSandbox#statementCounterBinding}).
+	 *        ⚠️ Sans effet sur Python : GraalPy ne coupe pas a {@code sandbox.MaxStatements} (mesure le
+	 *        16/09/2026, une boucle infinie tourne jusqu'au watchdog). Pour Python, c'est
+	 *        {@code executeTimeoutMs} qui borne une ligne.
+	 * @param executeTimeoutMs budget wall-clock d'une ligne, au-dela duquel elle est interrompue
 	 */
-	public PolyglotConsole(String language, long statementLimit, LogSink sink) {
+	public PolyglotConsole(String language, long statementLimit, long executeTimeoutMs, LogSink sink) {
+		this.executeTimeoutMs = executeTimeoutMs;
 		this.language = language;
 		this.typescript = "ts".equals(language);
 		this.languageId = "python".equals(language) ? "python" : "js";
@@ -114,6 +122,21 @@ public class PolyglotConsole implements AutoCloseable {
 	 * @throws ConsoleException erreur de transpilation (TS), de compilation ou d'execution
 	 */
 	public Result execute(String code) throws ConsoleException {
+		return execute(code, false);
+	}
+
+	/**
+	 * Execute un BLOC entier, comme une cellule de notebook : toutes les instructions, puis affichage
+	 * de la derniere si c'est une expression. Pour le /exec du chat, ou un message porte un bout de
+	 * programme et pas une ligne de REPL. Identique a {@link #execute(String)} en JS/TS (l'evaluation
+	 * d'un script rend deja la valeur de sa derniere instruction) ; en Python, le mode interactif de
+	 * la console refuse plus d'une instruction (« multiple statements found »).
+	 */
+	public Result executeBlock(String code) throws ConsoleException {
+		return execute(code, true);
+	}
+
+	private Result execute(String code, boolean block) throws ConsoleException {
 		String source = code;
 		if (typescript) {
 			TypeScriptTranspiler.Result tr = TypeScriptTranspiler.transpile(code, "console.ts");
@@ -126,7 +149,7 @@ public class PolyglotConsole implements AutoCloseable {
 		long before = readCounter();
 		final Context running = context;
 		ScheduledFuture<?> deadline = PolyglotSandbox.scheduleDeadline(
-				() -> PolyglotSandbox.interruptAsync(running), EXECUTE_TIMEOUT_MS);
+				() -> PolyglotSandbox.interruptAsync(running), executeTimeoutMs);
 		try {
 			context.resetLimits();
 			String display;
@@ -136,7 +159,7 @@ public class PolyglotConsole implements AutoCloseable {
 				Value v = context.eval(Source.newBuilder("js", source, "console" + (sourceCounter++) + ".js").buildLiteral());
 				display = context.getBindings("js").getMember("__lw_inspect").execute(v).asString();
 			} else {
-				Value v = context.getBindings("python").getMember("__lw_run").execute(source);
+				Value v = context.getBindings("python").getMember(block ? "__lw_run_block" : "__lw_run").execute(source);
 				display = v.isString() ? v.asString() : null;
 			}
 			long ops = readCounter() - before;
@@ -245,6 +268,20 @@ public class PolyglotConsole implements AutoCloseable {
 		+ "    finally:\n"
 		+ "        __lw_sys.displayhook = old\n"
 		+ "    return __lw_cap[0]\n"
+		// Bloc facon cellule de notebook (executeBlock) : AST du programme entier (drapeau PyCF_ONLY_AST de
+		// compile, sans importer le module ast.py dont les instructions seraient comptees au joueur),
+		// execution de tout sauf une derniere expression, puis evaluation et repr de celle-ci.
+		+ "import _ast as __lw_ast\n"
+		+ "def __lw_run_block(src):\n"
+		+ "    tree = compile(src, '<console>', 'exec', 0x400)\n"
+		+ "    last = None\n"
+		+ "    if tree.body and isinstance(tree.body[-1], __lw_ast.Expr):\n"
+		+ "        last = __lw_ast.Expression(tree.body.pop().value)\n"
+		+ "    exec(compile(tree, '<console>', 'exec'), __lw_g)\n"
+		+ "    if last is None:\n"
+		+ "        return __lw_NO\n"
+		+ "    v = eval(compile(last, '<console>', 'eval'), __lw_g)\n"
+		+ "    return __lw_NO if v is None else repr(v)\n"
 		+ "def __lw_print(*a, sep=' ', end='\\n', file=None, flush=False):\n"
 		+ "    __lw_log(sep.join(str(_x) for _x in a))\n"
 		+ "__lw_b.print = __lw_print\n";

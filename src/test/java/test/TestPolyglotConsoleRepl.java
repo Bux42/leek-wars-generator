@@ -139,26 +139,43 @@ public class TestPolyglotConsoleRepl {
 	}
 
 	/**
-	 * Plafond d'instructions propre a la console (/exec du chat : 100 000 au lieu des 20 M d'un combat) :
-	 * une boucle infinie est coupee par la limite, pas par le watchdog de 5 s, et le meme code borne
-	 * passe avec le plafond par defaut.
+	 * Plafonds propres a la console (/exec du chat : 100 000 instructions et 1 s au lieu des 20 M et
+	 * 5 s d'un combat). JS est coupe par la limite d'instructions ; Python ne l'est PAS (GraalPy ignore
+	 * sandbox.MaxStatements) et c'est le budget wall-clock qui le borne. Dans les deux cas, une boucle
+	 * infinie est interrompue bien avant les 5 s du watchdog par defaut, et du code borne passe.
 	 */
 	@Test
-	public void statementLimitCutsInfiniteLoop() throws Exception {
+	public void consoleLimitsCutInfiniteLoop() throws Exception {
 		for (String language : new String[] { "js", "python" }) {
-			String loop = language.equals("js") ? "while (true) {}" : "while True: pass";
+			String loop = language.equals("js") ? "while (true) {}" : "while True: pass\n";
 			long start = System.currentTimeMillis();
-			try (PolyglotConsole c = new PolyglotConsole(language, 100_000, new Logs())) {
+			try (PolyglotConsole c = new PolyglotConsole(language, 100_000, 1_000, new Logs())) {
 				c.execute(loop);
 				Assert.fail(language + " : la boucle infinie aurait du etre coupee");
 			} catch (PolyglotConsole.ConsoleException e) {
-				Assert.assertTrue(language + " : coupee par la limite, pas par le watchdog de 5 s",
-					System.currentTimeMillis() - start < 4_000);
+				Assert.assertTrue(language + " : " + e.getMessage(), e.getMessage().startsWith("Execution interrupted"));
+				Assert.assertTrue(language + " : coupee avant le watchdog par defaut", System.currentTimeMillis() - start < 3_000);
 			}
 			String bounded = language.equals("js") ? "let s = 0; for (let i = 0; i < 1000; i++) s += i; s" : "sum(range(1000))";
-			try (PolyglotConsole c = new PolyglotConsole(language, 100_000, new Logs())) {
+			try (PolyglotConsole c = new PolyglotConsole(language, 100_000, 1_000, new Logs())) {
 				Assert.assertEquals("499500", c.execute(bounded).display);
 			}
+		}
+	}
+
+	/** Un bloc entier (/exec du chat) : plusieurs instructions, puis la valeur de la derniere expression. */
+	@Test
+	public void pythonBlockLikeANotebookCell() throws Exception {
+		try (PolyglotConsole c = new PolyglotConsole("python", 100_000, 1_000, new Logs())) {
+			Assert.assertEquals("45", c.executeBlock("s = 0\nfor i in range(10):\n    s += i\ns").display);
+			Assert.assertEquals("1024", c.executeBlock("2 ** 10").display);
+			Assert.assertNull("sans expression finale, rien a afficher", c.executeBlock("x = 3\ny = 4").display);
+			Assert.assertNull("None ne s'affiche pas", c.executeBlock("print('a')\nNone").display);
+			long ops = c.executeBlock("2 ** 10").ops;
+			Assert.assertTrue("une ligne simple reste tres peu couteuse : " + ops, ops < 50);
+		}
+		try (PolyglotConsole c = new PolyglotConsole("js", 100_000, 1_000, new Logs())) {
+			Assert.assertEquals("45", c.executeBlock("let s = 0\nfor (let i = 0; i < 10; i++) s += i\ns").display);
 		}
 	}
 }
