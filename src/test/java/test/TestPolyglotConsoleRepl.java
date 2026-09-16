@@ -178,4 +178,23 @@ public class TestPolyglotConsoleRepl {
 			Assert.assertEquals("45", c.executeBlock("let s = 0\nfor (let i = 0; i < 10; i++) s += i\ns").display);
 		}
 	}
+
+	/**
+	 * Le cout d'une ligne est celui du code du joueur, pas celui de son affichage : l'inspecteur JS
+	 * (__lw_inspect) est compte par l'instrument, et afficher un tableau de 500 objets coutait 10 000 ops.
+	 */
+	@Test
+	public void displayIsNotCharged() throws Exception {
+		try (PolyglotConsole c = new PolyglotConsole("js", new Logs())) {
+			c.execute("var big = []; for (let i = 0; i < 500; i++) big.push({x: i, s: 'abc'})");
+			long nothing = c.execute("void 0").ops;
+			long shown = c.execute("big").ops;
+			Assert.assertTrue("afficher 500 objets ne coute rien de plus : " + shown + " vs " + nothing, shown <= nothing + 1);
+			Assert.assertTrue("une constante reste quasi gratuite : " + c.execute("1").ops, c.execute("1").ops <= 2);
+		}
+		try (PolyglotConsole c = new PolyglotConsole("python", new Logs())) {
+			c.execute("big = [{'x': i, 's': 'abc'} for i in range(500)]");
+			Assert.assertTrue(c.execute("big").ops <= 3);
+		}
+	}
 }

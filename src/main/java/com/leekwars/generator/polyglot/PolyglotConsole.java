@@ -153,16 +153,22 @@ public class PolyglotConsole implements AutoCloseable {
 		try {
 			context.resetLimits();
 			String display;
+			long ops;
 			if ("js".equals(languageId)) {
 				// Source nommee unique : evite le cache de Source de GraalJS entre lignes (une meme
 				// source re-evaluee serait mise en cache et ne re-jouerait pas ses effets).
 				Value v = context.eval(Source.newBuilder("js", source, "console" + (sourceCounter++) + ".js").buildLiteral());
+				// Compteur lu AVANT l'affichage : les instructions de __lw_inspect SONT comptees par
+				// l'instrument (mesure : afficher un tableau de 500 objets coutait 10 000 ops). Mettre le
+				// resultat en texte n'est pas le code du joueur.
+				ops = readCounter() - before;
 				display = context.getBindings("js").getMember("__lw_inspect").execute(v).asString();
 			} else {
 				Value v = context.getBindings("python").getMember(block ? "__lw_run_block" : "__lw_run").execute(source);
 				display = v.isString() ? v.asString() : null;
+				// repr() tourne dans __lw_run (source lw:, non comptee) : rien a soustraire en Python.
+				ops = readCounter() - before;
 			}
-			long ops = readCounter() - before;
 			return new Result(display, ops);
 		} catch (PolyglotException e) {
 			throw new ConsoleException(formatError(e), readCounter() - before);
