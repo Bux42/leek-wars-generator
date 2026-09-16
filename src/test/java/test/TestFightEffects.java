@@ -392,9 +392,61 @@ public class TestFightEffects extends FightTestBase {
 
 		Assert.assertEquals("50 % de la valeur du poison, pas de son total sur 5 tours", expectedDamage, dealt);
 		Assert.assertEquals(lifeBefore - expectedDamage, leek1.getLife());
-		// Le poison a détoné : il ne reste rien, ni sur la cible ni chez le lanceur
+		// Le poison n'a pas disparu : il a perdu un tour et garde sa valeur
+		Assert.assertEquals(1, leek1.getEffects().size());
+		Assert.assertEquals(1, leek2.getLaunchedEffects().size());
+		Assert.assertEquals("un tour brûlé", 4, poison.getTurns());
+		Assert.assertEquals("la valeur par tour est intacte", perTurn, poison.getValue());
+	}
+
+	@Test
+	public void superinfectionRemovesAPoisonOnItsLastTurn() throws Exception {
+		initFightOnly();
+		// Un poison à 1 tour : il n'a plus de tour à perdre, il s'éteint
+		applyEffect(Effect.TYPE_POISON, 1, 30, leek1, leek2, false);
+		var poison = leek1.getEffects().get(0);
+		int expectedDamage = (int) Math.round(poison.getValue() * 0.5);
+
+		int dealt = applyEffect(Effect.TYPE_SUPERINFECTION, 0, 50, leek1, leek2, false);
+
+		Assert.assertEquals(expectedDamage, dealt);
 		Assert.assertEquals(0, leek1.getEffects().size());
-		Assert.assertEquals(0, leek2.getLaunchedEffects().size());
+		Assert.assertEquals("retiré aussi de la liste du lanceur", 0, leek2.getLaunchedEffects().size());
+	}
+
+	@Test
+	public void superinfectionLeavesInfinitePoisonsAlone() throws Exception {
+		initFightOnly();
+		applyEffect(Effect.TYPE_POISON, -1, 30, leek1, leek2, false);
+		int lifeBefore = leek1.getLife();
+
+		int dealt = applyEffect(Effect.TYPE_SUPERINFECTION, 0, 50, leek1, leek2, false);
+
+		Assert.assertEquals("un poison infini ne détone pas", 0, dealt);
+		Assert.assertEquals(lifeBefore, leek1.getLife());
+		Assert.assertEquals(1, leek1.getEffects().size());
+		Assert.assertEquals(-1, leek1.getEffects().get(0).getTurns());
+	}
+
+	@Test
+	public void superinfectionCanBeChainedUntilThePoisonRunsOut() throws Exception {
+		initFightOnly();
+		// Deux tours de poison, deux détonations : la seconde l'épuise.
+		applyEffect(Effect.TYPE_POISON, 2, 30, leek1, leek2, false);
+		var poison = leek1.getEffects().get(0);
+		int perTurn = poison.getValue();
+
+		int first = applyEffect(Effect.TYPE_SUPERINFECTION, 0, 50, leek1, leek2, false);
+		Assert.assertEquals((int) Math.round(perTurn * 0.5), first);
+		Assert.assertEquals(1, poison.getTurns());
+
+		int second = applyEffect(Effect.TYPE_SUPERINFECTION, 0, 50, leek1, leek2, false);
+		Assert.assertEquals("même valeur par tour : la détonation n'érode pas le poison",
+			(int) Math.round(perTurn * 0.5), second);
+		Assert.assertEquals(0, leek1.getEffects().size());
+
+		// Plus rien à détoner
+		Assert.assertEquals(0, applyEffect(Effect.TYPE_SUPERINFECTION, 0, 50, leek1, leek2, false));
 	}
 
 	@Test
@@ -416,7 +468,10 @@ public class TestFightEffects extends FightTestBase {
 
 		Assert.assertEquals((int) Math.round(sum * 0.5), dealt);
 		Assert.assertEquals(lifeBefore - dealt, leek1.getLife());
-		Assert.assertEquals(0, leek1.getEffects().size());
+		// Chaque poison perd un tour : celui de leek1, déjà décompté à son tour, s'éteint,
+		// celui de leek2 continue à courir.
+		Assert.assertEquals(1, leek1.getEffects().size());
+		Assert.assertEquals(4, leek1.getEffects().get(0).getTurns());
 	}
 
 	@Test

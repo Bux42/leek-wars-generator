@@ -6,16 +6,19 @@ import com.leekwars.generator.attack.EntityState;
 import com.leekwars.generator.state.State;
 
 /**
- * Surinfection : fait détoner les poisons actifs de la cible. Ils disparaissent tous et
- * infligent d'un coup value1 % (50 % pour la puce Surinfection, 65 % en critique) de leur
- * somme à l'instant T — la somme de leurs valeurs par tour.
+ * Surinfection : fait détoner les poisons actifs de la cible. Ils infligent d'un coup
+ * value1 % (50 % pour la puce Surinfection, 65 % en critique) de leur somme à l'instant T
+ * — la somme de leurs valeurs par tour — et perdent chacun UN tour.
  *
  * Un poison ne compte donc que pour ce qu'il vaut au moment où on le fait détoner, jamais
- * multiplié par les tours qu'il lui restait à courir : on échange des poisons en cours
- * contre des dégâts tout de suite, et cet échange est perdant si on le fait trop tôt.
- * Multiplier par les tours restants faisait rendre à un poison bien plus que sa valeur
- * affichée — jusqu'à 100 % de son total quand la cible venait de le subir, car `turns` ne
- * baisse qu'au tour du LANCEUR du poison, pas à celui de la cible qui le subit.
+ * multiplié par les tours qu'il lui restait à courir : on avance un demi-tour de poison
+ * contre un tour entier, et l'échange est perdant de la même quantité quel que soit le
+ * moment choisi. Multiplier par les tours restants faisait rendre à un poison bien plus que
+ * sa valeur affichée — jusqu'à 100 % de son total quand la cible venait de le subir, car
+ * `turns` ne baisse qu'au tour du LANCEUR du poison, pas à celui de la cible qui le subit.
+ *
+ * Un poison qui tombe à 0 tour disparaît, les autres restent en place avec leur valeur
+ * intacte : la Surinfection ne nettoie plus la cible, c'est le rôle de l'Antidote.
  *
  * Les dégâts sont des dégâts de poison (érosion de poison, crédités au lanceur de la
  * Surinfection). Ils ignorent le flag irréductible des poisons : ce n'est pas une réduction
@@ -36,13 +39,24 @@ public class EffectSuperinfection extends Effect {
 			var e = effects.get(i);
 			if (!(e instanceof EffectPoison)) continue;
 			// Aucun item n'en pose aujourd'hui, mais un poison infini ne détone pas : il
-			// n'a pas de fin, le faire disparaître serait un cadeau à la cible.
+			// n'a pas de tour à perdre.
 			if (e.getTurns() == -1) continue;
 
 			poisons += e.value;
-			e.getCaster().removeLaunchedEffect(e);
-			target.removeEffect(e);
-			i--;
+
+			// Le poison brûle un tour. Il en reste donc un déclenchement de moins sur sa
+			// vie entière, ce que `turns` sait dire même si l'instant où il a été consommé,
+			// lui, n'est pas connu.
+			e.setTurns(e.getTurns() - 1);
+			if (e.getTurns() <= 0) {
+				e.getCaster().removeLaunchedEffect(e);
+				target.removeEffect(e);
+				i--;
+			} else {
+				// Le client tient sa propre horloge (décrément au tour du lanceur) : sans
+				// ça il afficherait un tour de trop jusqu'à la fin du poison.
+				target.updateEffectTurns(e);
+			}
 		}
 
 		int damages = (int) Math.round(poisons * ratio);

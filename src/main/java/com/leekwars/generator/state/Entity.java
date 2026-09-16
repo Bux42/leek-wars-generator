@@ -12,6 +12,7 @@ import java.util.TreeMap;
 
 import com.leekwars.generator.action.ActionRemoveEffect;
 import com.leekwars.generator.action.ActionUpdateEffect;
+import com.leekwars.generator.action.ActionUpdateEffectTurns;
 import com.leekwars.generator.attack.Attack;
 import com.leekwars.generator.attack.DamageType;
 import com.leekwars.generator.attack.EntityState;
@@ -1038,6 +1039,10 @@ public abstract class Entity {
 
 	public void updateEffect(Effect effect) {
 		state.log(new ActionUpdateEffect(effect.getLogID(), effect.value));
+	}
+
+	public void updateEffectTurns(Effect effect) {
+		state.log(new ActionUpdateEffectTurns(effect.getLogID(), effect.getTurns()));
 	}
 
 	public void clearEffects() {

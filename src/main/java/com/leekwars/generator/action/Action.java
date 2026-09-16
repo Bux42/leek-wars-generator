@@ -56,6 +56,7 @@ public interface Action {
 	public final static int REDUCE_EFFECTS = 306; // Action juste pour afficher "Les effets de X sont réduits de Y%"
 	public final static int REMOVE_POISONS = 307; // Action juste pour afficher "Les poisons de X sont neutralisés"
 	public final static int REMOVE_SHACKLES = 308; // Action juste pour afficher "Les entraves de X sont retirées"
+	public final static int UPDATE_EFFECT_TURNS = 309; // Un effet perd des tours hors du décompte normal (Surinfection)
 
 	// Other
 	public final static int ERROR = 1000;
