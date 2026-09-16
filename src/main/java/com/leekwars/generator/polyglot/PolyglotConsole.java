@@ -65,10 +65,20 @@ public class PolyglotConsole implements AutoCloseable {
 	private int sourceCounter = 0;
 
 	public PolyglotConsole(String language, LogSink sink) {
+		this(language, PolyglotSandbox.DEFAULT_STATEMENT_LIMIT, sink);
+	}
+
+	/**
+	 * @param statementLimit plafond d'instructions guest par ligne ({@code sandbox.MaxStatements}), au lieu
+	 *        de celui d'un combat. Sert au {@code /exec} du chat, ouvert a tous et au budget bien plus court
+	 *        que la console. Unite proche des ops affichees sans leur etre identique (le compteur
+	 *        deterministe des ops est un instrument a part, cf {@link PolyglotSandbox#statementCounterBinding}).
+	 */
+	public PolyglotConsole(String language, long statementLimit, LogSink sink) {
 		this.language = language;
 		this.typescript = "ts".equals(language);
 		this.languageId = "python".equals(language) ? "python" : "js";
-		this.sandbox = new PolyglotSandbox(languageId);
+		this.sandbox = new PolyglotSandbox(statementLimit, languageId);
 		this.context = sandbox.createContext(languageId);
 		this.counter = PolyglotSandbox.statementCounterBinding(context);
 		installConsole(sink);

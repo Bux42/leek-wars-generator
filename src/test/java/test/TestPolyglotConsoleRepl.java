@@ -137,4 +137,28 @@ public class TestPolyglotConsoleRepl {
 			Assert.assertEquals("42", run(c, "n + 1"));
 		}
 	}
+
+	/**
+	 * Plafond d'instructions propre a la console (/exec du chat : 100 000 au lieu des 20 M d'un combat) :
+	 * une boucle infinie est coupee par la limite, pas par le watchdog de 5 s, et le meme code borne
+	 * passe avec le plafond par defaut.
+	 */
+	@Test
+	public void statementLimitCutsInfiniteLoop() throws Exception {
+		for (String language : new String[] { "js", "python" }) {
+			String loop = language.equals("js") ? "while (true) {}" : "while True: pass";
+			long start = System.currentTimeMillis();
+			try (PolyglotConsole c = new PolyglotConsole(language, 100_000, new Logs())) {
+				c.execute(loop);
+				Assert.fail(language + " : la boucle infinie aurait du etre coupee");
+			} catch (PolyglotConsole.ConsoleException e) {
+				Assert.assertTrue(language + " : coupee par la limite, pas par le watchdog de 5 s",
+					System.currentTimeMillis() - start < 4_000);
+			}
+			String bounded = language.equals("js") ? "let s = 0; for (let i = 0; i < 1000; i++) s += i; s" : "sum(range(1000))";
+			try (PolyglotConsole c = new PolyglotConsole(language, 100_000, new Logs())) {
+				Assert.assertEquals("499500", c.execute(bounded).display);
+			}
+		}
+	}
 }
