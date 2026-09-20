@@ -190,6 +190,11 @@ public abstract class Effect implements Cloneable {
 	protected Stats stats = new Stats();
 	protected int logID = 0;
 	protected double erosionRate;
+	/**
+	 * Quantité de l'effet. ⚠️ `ADD_STATE` y range l'identifiant de l'état, et c'est un
+	 * contrat de sérialisation figé (protocole client + `getEffects()` côté LeekScript) :
+	 * un nouvel effet qui porterait un identifiant doit passer par `state`, jamais ici.
+	 */
 	public int value = 0;
 	public int previousEffectTotalValue;
 	public int targetCount;
@@ -348,8 +353,17 @@ public abstract class Effect implements Cloneable {
 		return modifiers;
 	}
 
+	/**
+	 * Part d'un effet qui survit à une réduction de `percent`. Bornée à 0 : `percent` peut
+	 * dépasser 1 (Exaspération critique est à 130 %), et un facteur négatif ferait remonter
+	 * les valeurs au lieu de les effacer.
+	 */
+	protected static double reductionFactor(double percent) {
+		return Math.max(0.0, 1.0 - percent);
+	}
+
 	public void reduce(double percent, Entity caster) {
-		double reduction = Math.max(0.0, 1.0 - percent);
+		double reduction = reductionFactor(percent);
 		value = (int) Math.round((double) value * reduction);
 		stats.forEach((statId, statValue) -> {
 			// abs(round(v * r)) * sign(v) pour l'arrondi si r = 0.5

@@ -16,14 +16,15 @@ public class EffectAddState extends Effect {
 	}
 
 	/**
-	 * Un état est binaire : on ne peut pas en retirer 40 %. La réduction générique mettait
-	 * la valeur à l'échelle, or c'est l'identifiant de l'état — une Libération à 40 % sur
-	 * Stérile donnait round(12 × 0,6) = 7, l'état magnétisé, et l'état disparaissait de
-	 * l'affichage du combat. Seule une réduction totale retire l'état.
+	 * Un état est binaire : sa quantité vaut 1, pas `value`, qui porte l'identifiant de
+	 * l'état. Mettre `value` à l'échelle donnait round(12 × 0,6) = 7 pour une Libération à
+	 * 40 % sur Stérile, soit l'état magnétisé, et l'état disparaissait de l'affichage du
+	 * combat faute d'icône. C'est donc à ce 1 que s'applique la réduction générique, avec
+	 * le même arrondi que pour un effet qui ne vaudrait qu'un point de stat.
 	 */
 	@Override
 	public void reduce(double percent, Entity caster) {
-		if (percent >= 1) {
+		if (Math.round(reductionFactor(percent)) == 0) {
 			value = 0;
 		}
 	}

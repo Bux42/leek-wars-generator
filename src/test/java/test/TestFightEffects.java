@@ -241,15 +241,48 @@ public class TestFightEffects extends FightTestBase {
 	}
 
 	@Test
-	public void partialDebuffLeavesStateIntact() throws Exception {
-		// Libération (-40 %) mettait la valeur de l'effet à l'échelle, or c'est
-		// l'identifiant de l'état : Stérile (12) devenait 7, l'état magnétisé, et
-		// disparaissait de l'affichage du combat.
+	public void debuffUnderHalfLeavesStateIntact() throws Exception {
+		// Un état vaut 1, et round(1 × 0,6) = 1 : la Libération non critique ne le retire
+		// pas. La valeur de l'effet, elle, n'est jamais mise à l'échelle — c'est
+		// l'identifiant de l'état, et Stérile (12) réduit de 40 % donnait 7, l'état
+		// magnétisé, qui disparaissait de l'affichage du combat.
 		initFightOnly();
 		applyState(EntityState.STERILE, leek1, leek2, false, 0);
 		leek1.reduceEffects(0.40, leek2);
-		Assert.assertEquals("L'état survit à une réduction partielle", 1, leek1.getEffects().size());
+		Assert.assertEquals("L'état survit à une réduction de 40 %", 1, leek1.getEffects().size());
 		Assert.assertEquals(EntityState.STERILE.ordinal(), leek1.getEffects().get(0).getValue());
+		Assert.assertTrue(leek1.hasState(EntityState.STERILE));
+	}
+
+	@Test
+	public void debuffOverHalfRemovesState() throws Exception {
+		// round(1 × 0,48) = 0 : la Libération critique (-52 %) retire l'état.
+		initFightOnly();
+		applyState(EntityState.STERILE, leek1, leek2, false, 0);
+		leek1.reduceEffects(0.52, leek2);
+		Assert.assertEquals("Une réduction de 52 % retire l'état", 0, leek1.getEffects().size());
+		Assert.assertFalse(leek1.hasState(EntityState.STERILE));
+	}
+
+	@Test
+	public void debuffAtExactlyHalfLeavesStateIntact() throws Exception {
+		// round(1 × 0,5) = 1 : à 50 % pile, l'arrondi au plus proche conserve l'état.
+		initFightOnly();
+		applyState(EntityState.STERILE, leek1, leek2, false, 0);
+		leek1.reduceEffects(0.50, leek2);
+		Assert.assertEquals("L'état survit à une réduction de 50 % pile", 1, leek1.getEffects().size());
+		Assert.assertTrue(leek1.hasState(EntityState.STERILE));
+	}
+
+	@Test
+	public void irreductibleStateSurvivesDebuff() throws Exception {
+		// Protection divine et Réveil sont IRREDUCTIBLE : reduceEffects les saute, quel
+		// que soit le pourcentage. Seule Exaspération (TOTAL_DEBUFF) les atteint.
+		initFightOnly();
+		applyState(EntityState.INVINCIBLE, leek1, leek2, false, Effect.MODIFIER_IRREDUCTIBLE);
+		leek1.reduceEffects(1.0, leek2);
+		Assert.assertEquals("Un état irréductible ignore le DEBUFF", 1, leek1.getEffects().size());
+		Assert.assertTrue(leek1.hasState(EntityState.INVINCIBLE));
 	}
 
 	@Test
@@ -257,7 +290,7 @@ public class TestFightEffects extends FightTestBase {
 		initFightOnly();
 		applyState(EntityState.STERILE, leek1, leek2, false, 0);
 		leek1.reduceEffectsTotal(1.0, leek2);
-		Assert.assertEquals("Seule une réduction totale retire l'état", 0, leek1.getEffects().size());
+		Assert.assertEquals("Une réduction totale retire l'état", 0, leek1.getEffects().size());
 	}
 
 	// ---------- État Enraciné (ROOTED) ----------
