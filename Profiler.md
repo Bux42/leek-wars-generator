@@ -79,6 +79,18 @@ There is a python helper script which will generate all profiler svgs for all tu
 python.exe .\profile.py test/scenario/scenario1.json
 ```
 
+Here is how the page will look like
+
+![Profiler turn list](readme_images/profiler_web_view_turns.png)
+
+From here you can select a specific turn, and see the profiling output of each entities that played during that turn:
+
+![Profiler entities list](readme_images/profiler_web_view_turn_entities.png)
+
+To see the full profiler detail, click on "OpenSVG", on which you will be able to see the full OPs spent breakdown of the AI
+
+![Profiler output](readme_images/profiler_svg_output.png)
+
 ## Execute fight
 
 Run from repository root:
