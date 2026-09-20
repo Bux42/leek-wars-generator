@@ -71,6 +71,14 @@ Run from repository root:
 
 Build creates `generator.jar` in repository root.
 
+## Python profiler helper
+
+There is a python helper script which will generate all profiler svgs for all turns and all entities of a given scenario, then it will generate and open a html page where you will be able to easily browse the profiler output
+
+```
+python.exe .\profile.py test/scenario/scenario1.json
+```
+
 ## Execute fight
 
 Run from repository root:
@@ -100,8 +108,8 @@ Files can be rendered with `flamegraph.pl`:
 
 ```powershell
 perl .\FlameGraph\flamegraph.pl --width 1920 --countname OPs --colors js `
-    .\profiler-output\<timestamp>\<turn>\<entity name>_<entity id>.folded `
-    > .\profile.svg
+    profiler-output\20260920-110358-010\2\Bob_89.folded `
+    > .\profile_turn_2.svg
 ```
 
 Only alive, valid entities that execute a turn get files. Bulbs use their own entity file. `staticInit` appears when it consumes OP.
